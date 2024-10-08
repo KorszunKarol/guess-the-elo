@@ -18,7 +18,7 @@ const ChessBoard = ({ game }: ChessBoardProps) => {
 
   useEffect(() => {
     const updateDimensions = () => {
-      const width = Math.min(500, window.innerWidth - 40); // 40px for padding
+      const width = Math.min(500, window.innerWidth - 40);
       setBoardWidth(width);
     };
 
