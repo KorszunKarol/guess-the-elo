@@ -1,1 +1,0 @@
-# Game schema will go here

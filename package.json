@@ -1,40 +1,9 @@
 {
-  "name": "guess-the-elo",
-  "version": "1.0.0",
-  "description": "A chess game where you guess the Elo rating of the players",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
   "dependencies": {
-    "@radix-ui/react-dialog": "^1.0.4",
-    "@radix-ui/react-label": "^2.1.0",
-    "@radix-ui/react-progress": "^1.0.3",
-    "@radix-ui/react-radio-group": "^1.2.1",
-    "@radix-ui/react-slider": "^1.1.2",
-    "@radix-ui/react-slot": "^1.0.2",
-    "@radix-ui/react-tabs": "^1.1.1",
-    "chess.js": "^1.0.0-beta.6",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.0.0",
-    "framer-motion": "^11.11.1",
-    "lucide-react": "^0.447.0",
-    "next": "^14.0.0",
-    "react": "^18.2.0",
-    "react-chessboard": "^2.0.0",
-    "react-dnd": "^16.0.1",
-    "react-dnd-html5-backend": "^16.0.1",
-    "react-dnd-touch-backend": "^16.0.1",
-    "react-dom": "^18.2.0",
-    "tailwind-merge": "^2.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "22.7.4",
-    "@types/react": "18.3.11",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.5",
-    "typescript": "5.6.2"
+    "@splinetool/react-spline": "^4.0.0",
+    "@splinetool/runtime": "^1.9.43",
+    "@types/three": "^0.170.0",
+    "next-themes": "^0.4.3",
+    "three": "^0.170.0"
   }
 }

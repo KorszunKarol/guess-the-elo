@@ -1,0 +1,56 @@
+'use client';
+
+import Link from 'next/link';
+
+function ChessLogo() {
+  return (
+    <div className="flex items-center gap-2">
+      <svg
+        viewBox="0 0 24 24"
+        width="32"
+        height="32"
+        className="text-blue-400"
+      >
+        <g fill="currentColor">
+          <rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" rx="2" />
+          <rect x="4" y="4" width="8" height="8" className="opacity-40" />
+          <rect x="12" y="12" width="8" height="8" className="opacity-40" />
+          <path
+            d="M4 6c0-1.1.9-2 2-2h12a2 2 0 0 1 2 2v1H4V6z"
+            className="text-purple-500"
+            fill="currentColor"
+          />
+          <circle cx="14" cy="10" r="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M15.5 11.5L18 14" stroke="currentColor" strokeWidth="1.5" />
+        </g>
+      </svg>
+      <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+        ChessDetective
+      </span>
+    </div>
+  );
+}
+
+export function Navigation() {
+  return (
+    <nav className="flex justify-between items-center mb-16">
+      <Link href="/" className="hover:opacity-90 transition-opacity">
+        <ChessLogo />
+      </Link>
+      <div className="flex items-center gap-6">
+        <a href="#features" className="text-gray-300 hover:text-blue-400 transition-colors">Features</a>
+        <a href="#how-to-play" className="text-gray-300 hover:text-blue-400 transition-colors">How to Play</a>
+        <Link href="/login">
+          <button className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold">
+            Sign In
+          </button>
+        </Link>
+        <Link href="/register">
+          <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 text-white px-4 py-2 rounded-lg font-semibold">
+            Get Started
+          </button>
+        </Link>
+      </div>
+    </nav>
+  );
+}
