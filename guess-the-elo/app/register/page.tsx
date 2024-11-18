@@ -1,18 +1,23 @@
 'use client';
 
 import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import Link from "next/link";
-import { motion } from "framer-motion";
+import { Github } from 'lucide-react';
 import { ChessBackground } from '@/components/landing/ChessBackground';
+import { BackgroundDots } from '@/app/guess-the-elo/components/BackgroundDots';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-      {/* Background Elements */}
+      <BackgroundDots />
+      <ChessBackground />
+
+      {/* Decorative Elements */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute top-1/4 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl" />
@@ -28,19 +33,19 @@ export default function LoginPage() {
           className="mb-8 text-center"
         >
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent mb-2">
-            Welcome Back to ChessDetective
+            Welcome to ChessDetective
           </h1>
-          <p className="text-gray-400">Continue your chess investigation journey</p>
+          <p className="text-gray-400">Join our community of chess enthusiasts</p>
         </motion.div>
 
-        {/* Login Card */}
+        {/* Registration Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
           className="w-full max-w-md"
         >
-          <Card className="bg-gray-800/80 backdrop-blur-sm border-gray-700">
+          <Card className="bg-[#374151] backdrop-blur-sm bg-opacity-80">
             <CardHeader className="space-y-1">
               <div className="flex items-center">
                 <Link
@@ -49,10 +54,13 @@ export default function LoginPage() {
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </Link>
-                <CardTitle className="text-2xl font-bold text-blue-400 flex-grow text-center">
-                  Sign In
+                <CardTitle className="text-2xl font-bold text-blue-500 flex-grow text-center">
+                  Create Account
                 </CardTitle>
               </div>
+              <CardDescription className="text-gray-400 text-center">
+                Start your chess investigation journey
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -61,7 +69,7 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   placeholder="detective@example.com"
-                  className="bg-gray-900/50 border-gray-700"
+                  className="bg-[#1f2937] border-0"
                 />
               </div>
               <div className="space-y-2">
@@ -69,20 +77,45 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
-                  className="bg-gray-900/50 border-gray-700"
+                  className="bg-[#1f2937] border-0"
                 />
               </div>
-              <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90">
-                Sign In
+              <div className="space-y-2">
+                <Label htmlFor="confirm">Confirm Password</Label>
+                <Input
+                  id="confirm"
+                  type="password"
+                  className="bg-[#1f2937] border-0"
+                />
+              </div>
+              <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600">
+                Create Account
+              </Button>
+
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-600" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-[#374151] px-2 text-gray-500 uppercase">OR CONTINUE WITH</span>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full border border-gray-600 hover:bg-[#1f2937] text-gray-300"
+              >
+                <Github className="mr-2 h-4 w-4" />
+                Github
               </Button>
 
               <div className="text-center text-sm">
-                <span className="text-gray-400">Don't have an account? </span>
+                <span className="text-gray-500">Already have an account? </span>
                 <Link
-                  href="/register"
-                  className="text-blue-400 hover:underline"
+                  href="/login"
+                  className="text-blue-500 hover:underline"
                 >
-                  Sign up
+                  Sign in
                 </Link>
               </div>
             </CardContent>

@@ -38,16 +38,16 @@ export function Navigation() {
         <ChessLogo />
       </Link>
       <div className="flex items-center gap-6">
-        <a href="#features" className="text-gray-300 hover:text-blue-400 transition-colors">Features</a>
-        <a href="#how-to-play" className="text-gray-300 hover:text-blue-400 transition-colors">How to Play</a>
+        <a href="#features" className="text-white hover:text-blue-400 transition-colors">Features</a>
+        <a href="#how-to-play" className="text-white hover:text-blue-400 transition-colors">How to Play</a>
         <Link href="/login">
           <button className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold">
-            Sign In
+            Login
           </button>
         </Link>
         <Link href="/register">
           <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 text-white px-4 py-2 rounded-lg font-semibold">
-            Get Started
+            Play for Free
           </button>
         </Link>
       </div>

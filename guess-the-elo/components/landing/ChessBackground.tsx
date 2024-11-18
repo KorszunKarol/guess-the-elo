@@ -1,81 +1,140 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import styles from './ChessBackground.module.css';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const chessPieces = [
+// Different geometric shapes
+const shapes = [
   {
-    name: 'pawn',
-    path: 'M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z'
+    type: 'circle',
+    render: (size: number) => (
+      <circle cx={size/2} cy={size/2} r={size/3} />
+    )
   },
   {
-    name: 'knight',
-    path: 'M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18'
+    type: 'square',
+    render: (size: number) => (
+      <rect width={size * 0.6} height={size * 0.6} x={size * 0.2} y={size * 0.2} />
+    )
   },
   {
-    name: 'bishop',
-    path: 'M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.65,38.99 6.68,38.97 6,38 C 7.35,36.54 9,36 9,36 z'
+    type: 'triangle',
+    render: (size: number) => {
+      const center = size / 2;
+      const third = size / 3;
+      return (
+        <polygon points={`${center},${third} ${center + third},${center + third} ${center - third},${center + third}`} />
+    )}
   },
   {
-    name: 'rook',
-    path: 'M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14'
+    type: 'diamond',
+    render: (size: number) => {
+      const center = size / 2;
+      const third = size / 3;
+      return (
+        <polygon points={`${center},${third} ${center + third},${center} ${center},${center + third} ${center - third},${center}`} />
+    )}
   }
 ];
 
 export function ChessBackground() {
-  const [pieces, setPieces] = useState<Array<{
+  const [elements, setElements] = useState<Array<{
     id: number;
     x: number;
     y: number;
     size: number;
+    shape: typeof shapes[number];
     rotation: number;
-    piece: typeof chessPieces[number];
-    delay: number;
   }>>([]);
 
   useEffect(() => {
-    const particleCount = 30;
-    const newPieces = Array.from({ length: particleCount }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 60 + 40,
-      rotation: Math.random() * 360,
-      piece: chessPieces[Math.floor(Math.random() * chessPieces.length)],
-      delay: Math.random() * 5
-    }));
-    setPieces(newPieces);
+    // Divide the screen into a grid for better distribution
+    const count = 30; // Increased count for better coverage
+    const gridSize = Math.ceil(Math.sqrt(count));
+
+    const newElements = Array.from({ length: count }, (_, i) => {
+      // Calculate grid position
+      const gridRow = Math.floor(i / gridSize);
+      const gridCol = i % gridSize;
+
+      // Calculate base position with some randomness
+      const baseX = (gridCol / gridSize) * 100;
+      const baseY = (gridRow / gridSize) * 100;
+
+      // Add randomness within the grid cell
+      const randomX = (Math.random() - 0.5) * (100 / gridSize);
+      const randomY = (Math.random() - 0.5) * (100 / gridSize);
+
+      return {
+        id: i,
+        x: Math.max(0, Math.min(100, baseX + randomX)),
+        y: Math.max(0, Math.min(100, baseY + randomY)),
+        size: Math.random() * 40 + 20,
+        shape: shapes[Math.floor(Math.random() * shapes.length)],
+        rotation: Math.random() * 360
+      };
+    });
+
+    setElements(newElements);
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {pieces.map((piece) => (
-        <div
-          key={piece.id}
-          className={styles.chessPiece}
-          style={{
-            left: `${piece.x}%`,
-            top: `${piece.y}%`,
-            width: `${piece.size}px`,
-            height: `${piece.size}px`,
-            animationDelay: `${piece.delay}s`,
-          }}
-        >
-          <svg
-            viewBox="0 0 45 45"
-            className="w-full h-full opacity-20 dark:opacity-40 text-gray-400 dark:text-blue-400"
+    <div className="fixed inset-0 w-full h-full pointer-events-none">
+      <AnimatePresence>
+        {elements.map((element) => (
+          <motion.div
+            key={element.id}
+            className="absolute"
+            initial={{
+              left: `${element.x}%`,
+              top: `${element.y}%`,
+              opacity: 0,
+              scale: 0
+            }}
+            animate={{
+              opacity: 0.08,
+              scale: [1, 1.2, 1],
+              left: [`${element.x}%`, `${element.x + 2}%`, `${element.x}%`],
+              top: [`${element.y}%`, `${element.y - 2}%`, `${element.y}%`],
+            }}
+            transition={{
+              duration: 15,
+              repeat: Infinity,
+              ease: "easeInOut",
+              times: [0, 0.5, 1],
+              repeatType: "reverse",
+              delay: element.id * 0.3
+            }}
+            style={{
+              width: `${element.size}px`,
+              height: `${element.size}px`,
+            }}
           >
-            <path
-              d={piece.piece.path}
-              fill="currentColor"
-              stroke="currentColor"
-              strokeWidth="1"
-              transform={`rotate(${piece.rotation}, 22.5, 22.5)`}
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
-      ))}
+            <motion.svg
+              viewBox="0 0 100 100"
+              className="w-full h-full"
+              initial={{ rotate: element.rotation }}
+              animate={{
+                rotate: [element.rotation, element.rotation + 180, element.rotation],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{
+                duration: 20,
+                repeat: Infinity,
+                ease: "easeInOut",
+                repeatType: "reverse"
+              }}
+            >
+              <motion.g
+                className="fill-blue-200/30 stroke-blue-300/30"
+                strokeWidth="1"
+              >
+                {element.shape.render(100)}
+              </motion.g>
+            </motion.svg>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

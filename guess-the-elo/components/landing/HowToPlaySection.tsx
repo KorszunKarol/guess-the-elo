@@ -16,8 +16,8 @@ function Step({ number, title, description }: StepProps) {
     <div className="flex gap-4">
       <div className="text-blue-400 font-bold text-xl">{number}</div>
       <div>
-        <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">{title}</h3>
-        <p className="text-gray-600 dark:text-gray-400">{description}</p>
+        <h3 className="text-xl font-semibold mb-2 text-white">{title}</h3>
+        <p className="text-gray-300">{description}</p>
       </div>
     </div>
   );
@@ -36,7 +36,7 @@ export function HowToPlaySection() {
           <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-blue-600 bg-clip-text text-transparent">
             How to Play
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto relative">
+          <p className="text-xl text-white mb-8 max-w-2xl mx-auto relative">
             Start improving your chess analysis in simple steps
             <span className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600"></span>
           </p>
@@ -60,29 +60,29 @@ export function HowToPlaySection() {
               <div className="flex gap-4 items-start">
                 <span className="text-blue-400 text-xl font-bold">01</span>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">Select Your Mode</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Choose between Guess the Elo or Guess the Eval mode.</p>
+                  <h3 className="text-xl font-semibold mb-2 text-white">Select Your Mode</h3>
+                  <p className="text-gray-300">Choose between Guess the Elo or Guess the Eval mode.</p>
                 </div>
               </div>
               <div className="flex gap-4 items-start">
                 <span className="text-blue-400 text-xl font-bold">02</span>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">Study the Position</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Watch the moves or analyze the position carefully.</p>
+                  <h3 className="text-xl font-semibold mb-2 text-white">Study the Position</h3>
+                  <p className="text-gray-300">Watch the moves or analyze the position carefully.</p>
                 </div>
               </div>
               <div className="flex gap-4 items-start">
                 <span className="text-blue-400 text-xl font-bold">03</span>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">Make Your Prediction</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Enter your rating guess or evaluation prediction.</p>
+                  <h3 className="text-xl font-semibold mb-2 text-white">Make Your Prediction</h3>
+                  <p className="text-gray-300">Enter your rating guess or evaluation prediction.</p>
                 </div>
               </div>
               <div className="flex gap-4 items-start">
                 <span className="text-blue-400 text-xl font-bold">04</span>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">Learn and Improve</h3>
-                  <p className="text-gray-600 dark:text-gray-400">See the correct answer and understand where you can improve.</p>
+                  <h3 className="text-xl font-semibold mb-2 text-white">Learn and Improve</h3>
+                  <p className="text-gray-300">See the correct answer and understand where you can improve.</p>
                 </div>
               </div>
             </div>

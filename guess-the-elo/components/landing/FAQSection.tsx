@@ -40,7 +40,7 @@ export function FAQSection() {
           <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-blue-600 bg-clip-text text-transparent">
             Frequently Asked Questions
           </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto relative">
+          <p className="text-xl text-white mb-8 max-w-2xl mx-auto relative">
             Everything you need to know about our chess analysis challenges
             <span className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600"></span>
           </p>
@@ -57,14 +57,14 @@ export function FAQSection() {
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-lg px-6 overflow-hidden"
+                className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg px-6 overflow-hidden"
               >
-                <AccordionTrigger className="text-left hover:no-underline py-6 text-lg font-semibold text-gray-800 dark:text-gray-200">
-                  <span className="hover:text-blue-400 transition-colors">
+                <AccordionTrigger className="text-left hover:no-underline py-6 text-lg font-semibold">
+                  <span className="text-white hover:text-blue-400 transition-colors">
                     {faq.question}
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-gray-600 dark:text-gray-400 pb-6 text-base leading-relaxed">
+                <AccordionContent className="text-gray-300 pb-6 text-base leading-relaxed">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
