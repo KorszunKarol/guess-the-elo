@@ -1,0 +1,21 @@
+.chessPiece {
+  position: absolute;
+  pointer-events: none;
+  animation: float 8s infinite ease-in-out;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.1));
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(50px, 50px);
+  }
+  50% {
+    transform: translate(0, 100px);
+  }
+  75% {
+    transform: translate(-50px, 50px);
+  }
+}
