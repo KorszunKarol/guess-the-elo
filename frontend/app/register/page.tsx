@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Github } from 'lucide-react';
 import { ChessBackground } from '@/components/sections/ChessBackground';
-import { BackgroundDots } from '@components/chess/BackgroundDots';
+import { BackgroundDots } from '@/components/chess/BackgroundDots';
 
 export default function RegisterPage() {
     return (

@@ -3,8 +3,8 @@
 import React from 'react';
 
 function BackgroundDots() {
-    const dotSpacing = 20;
-    const dotSize = 1.5;
+    const dotSpacing = 30;
+    const dotSize = 2;
 
     return (
         <div
@@ -20,9 +20,9 @@ function BackgroundDots() {
                 backgroundSize: `${dotSpacing}px ${dotSpacing}px`,
                 backgroundPosition: `${dotSpacing / 2}px ${dotSpacing / 2}px`,
                 maskImage:
-                    'linear-gradient(to bottom, transparent, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.8) 80%, transparent)',
+                    'linear-gradient(to bottom, transparent, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.8) 20%, transparent)',
                 WebkitMaskImage:
-                    'linear-gradient(to bottom, transparent, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.8) 80%, transparent)',
+                    'linear-gradient(to bottom, transparent, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.8) 20%, transparent)',
             }}
         />
     );

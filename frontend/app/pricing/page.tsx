@@ -12,7 +12,7 @@ import {
 import { Check, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { BackgroundDots } from '@components/chess/BackgroundDots';
+import { BackgroundDots } from '@/components/chess/BackgroundDots';
 import { useState } from 'react';
 import { stripePromise } from '@/lib/stripe';
 import { useToast } from '@/components/ui/use-toast';

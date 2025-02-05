@@ -39,9 +39,9 @@ export default function StockfishEvaluation() {
     };
 
     return (
-        <Card className="w-full bg-gray-900/50 backdrop-blur-sm border-gray-800">
+        <Card className="w-full h-full bg-gray-900/50 backdrop-blur-sm border-gray-800">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
+                <CardTitle className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
                     Engine Analysis
                 </CardTitle>
                 <div className="flex items-center gap-2">

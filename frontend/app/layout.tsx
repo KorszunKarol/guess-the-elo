@@ -17,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        {/* This should be empty - all layouts are handled in route groups */}
         {children}
       </body>
     </html>

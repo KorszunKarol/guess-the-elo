@@ -17,7 +17,7 @@ import { GuessPanel } from '@/components/game/GuessPanel';
 import { StockfishAnalysis } from '@/components/stockfish/StockfishAnalysis';
 
 export default function GuessTheElo() {
-    const [game, setGame] = useState<Chess | null>(null);
+    const [game, setGame] = useState<Chess>(new Chess());
     const [turn, setTurn] = useState<'White' | 'Black'>('White');
     const [highScore, setHighScore] = useState(0);
     const [round, setRound] = useState(1);
@@ -68,6 +68,7 @@ export default function GuessTheElo() {
             },
         },
     });
+    const [currentGuess, setCurrentGuess] = useState<number>(0);
 
     // Timer effect
     useEffect(() => {
@@ -156,11 +157,6 @@ export default function GuessTheElo() {
         <div className="min-h-screen bg-gray-900 text-white relative">
             <BackgroundDots />
             <div className="container mx-auto px-4 py-8 relative z-10">
-                <Header
-                    onProfileClick={() => setShowProfile(true)}
-                    onSettingsClick={() => setIsSettingsOpen(true)}
-                    onStatsClick={() => setShowStats(true)}
-                />
                 <div className="mt-8">
                     <Card className="bg-gray-800 border-gray-700 overflow-hidden max-w-5xl w-full mx-auto">
                         <GameHeader
@@ -174,10 +170,11 @@ export default function GuessTheElo() {
                                 leftPanel={
                                     <StockfishAnalysis
                                         position={game.fen()}
-                                        depth={10} // or your preferred depth
+                                        depth={10}
+                                        key={game.fen()}
                                     />
                                 }
-                                middlePanel={
+                                centerPanel={
                                     <ChessContainer>
                                         <ChessBoard position={game.fen()} onMove={handleMove} />
                                         <BoardControls
@@ -194,6 +191,7 @@ export default function GuessTheElo() {
                                     <GuessPanel
                                         onSubmit={handleEvaluationSubmit}
                                         currentGuess={currentGuess}
+                                        setCurrentGuess={setCurrentGuess}
                                         round={round}
                                     />
                                 }

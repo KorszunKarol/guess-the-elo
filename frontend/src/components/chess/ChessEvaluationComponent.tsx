@@ -40,13 +40,8 @@ export default function ChessEvaluationComponent({
     }
 
     return (
-        <Card className="w-full bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700 shadow-xl">
-            <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
-                    Guess the Position Evaluation
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
+        <Card className="w-full h-full bg-gray-900/50 backdrop-blur-sm border-gray-800">
+            <CardContent className="p-6 space-y-6">
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
                         <span className="text-base font-medium text-gray-200">

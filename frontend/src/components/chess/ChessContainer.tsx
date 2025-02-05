@@ -8,7 +8,7 @@ interface ChessContainerProps {
 export const ChessContainer = ({ children, className }: ChessContainerProps) => (
   <div className={cn(
     "relative isolate flex flex-col items-center p-4 gap-4",
-    "max-w-[800px] w-full mx-auto",
+    "w-full h-full mx-auto",
     className
   )}>
     {/* Background card */}

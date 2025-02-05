@@ -12,14 +12,56 @@ import { GameHeader, BoardControls } from '@/components/game';
 import { ChessContainer } from '@/components/chess/ChessContainer';
 import { ChessControls } from '@/components/chess/ChessControls';
 import { GameLayout } from '@/components/game/GameLayout';
-import { StockfishAnalysis } from '@/components/stockfish/StockfishAnalysis';
+import ProfilePage from '@/components/chess/ProfilePage';
+import StatsPage from '@/components/chess/StatsPage';
 
-export default function GuessTheEval() {
+export default function GuessTheEvalPage() {
     const [game, setGame] = useState<Chess>(new Chess());
     const [currentRound, setCurrentRound] = useState(1);
     const [totalRounds] = useState(5);
     const [timeRemaining, setTimeRemaining] = useState(60);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [showProfile, setShowProfile] = useState(false);
+    const [showStats, setShowStats] = useState(false);
+    const [currentGuess, setCurrentGuess] = useState<number>(0);
+    const [userData, setUserData] = useState({
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        subscription: 'Free',
+        subscriptionPrice: '$0',
+        achievements: ['Beginner', '10 Games Played'],
+        stats: {
+            guessTheElo: {
+                gamesPlayed: 0,
+                averageAccuracy: 0,
+                bestStreak: 0,
+                totalPoints: 0,
+                ratingDistribution: {
+                    beginner: 0,
+                    intermediate: 0,
+                    advanced: 0,
+                    expert: 0,
+                },
+            },
+            guessTheEval: {
+                gamesPlayed: 0,
+                averageAccuracy: 0,
+                averageCPL: 0,
+                totalPoints: 0,
+                bestAccuracy: 0,
+                averageTime: 0,
+                winningPositions: 0,
+                equalPositions: 0,
+                losingPositions: 0,
+            },
+            overall: {
+                totalGamesPlayed: 0,
+                rank: 'Novice Analyst',
+                joinedDate: new Date().toISOString(),
+                lastPlayed: new Date().toISOString(),
+            },
+        },
+    });
 
     useEffect(() => {
         if (timeRemaining <= 0) return;
@@ -41,59 +83,111 @@ export default function GuessTheEval() {
     };
 
     const handleResetPosition = () => {
-        console.log('Reset position');
+        setGame(new Chess());
+        setCurrentGuess(0);
     };
 
     const handleMove = (move: string) => {
         // Handle move logic
     };
 
-    const headerProps = {
-        onProfileClick: () => {},
-        onSettingsClick: () => setIsSettingsOpen(true),
-        onStatsClick: () => {}
-    };
+    if (showProfile) {
+        return (
+            <ProfilePage
+                onClose={() => setShowProfile(false)}
+                userData={{
+                    ...userData,
+                    stats: {
+                        ...userData.stats,
+                        guessTheElo: {
+                            ...userData.stats.guessTheElo,
+                            bestStreak: 0,
+                        },
+                        guessTheEval: {
+                            ...userData.stats.guessTheEval,
+                            bestStreak: 0,
+                            positionTypes: {
+                                tactical: 0,
+                                strategic: 0,
+                                endgame: 0,
+                                opening: 0,
+                            },
+                        },
+                    },
+                }}
+            />
+        );
+    }
 
-    const evaluationProps = {
-        onSubmit: handleSubmit,
-        currentMove: currentRound,
-        highScore: 0,
-        totalMoves: totalRounds
-    };
-
-    const modalProps = {
-        isOpen: isSettingsOpen,
-        onClose: () => setIsSettingsOpen(false),
-        onSave: (settings: any) => {
-            console.log('Settings saved:', settings);
-            setIsSettingsOpen(false);
-        },
-        gameMode: 'eval'
-    };
+    if (showStats) {
+        return (
+            <StatsPage
+                onClose={() => setShowStats(false)}
+                stats={{
+                    guessTheElo: {
+                        ...userData.stats.guessTheElo,
+                        averageError: 0,
+                        bestAccuracy: 0,
+                        averageTime: 0,
+                    },
+                    guessTheEval: userData.stats.guessTheEval,
+                }}
+            />
+        );
+    }
 
     return (
-        <GameLayout
-            leftPanel={
-                <div aria-label="Engine analysis panel">
-                    <StockfishEvaluation />
+        <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-gray-900 text-white">
+            <Header
+                onProfileClick={() => setShowProfile(true)}
+                onSettingsClick={() => setIsSettingsOpen(true)}
+                onStatsClick={() => setShowStats(true)}
+            />
+            <div className="w-full max-w-7xl mx-auto mt-6">
+                <div className="bg-gray-800 border border-gray-700 overflow-hidden rounded-lg">
+                    <GameHeader
+                        currentRound={currentRound}
+                        totalRounds={totalRounds}
+                        timeRemaining={timeRemaining}
+                        title="Guess the Eval"
+                    />
+                    <GameLayout
+                        leftPanel={
+                            <StockfishEvaluation />
+                        }
+                        centerPanel={
+                            <ChessContainer className="max-w-[90vw]">
+                                <ChessBoard
+                                    position={game.fen()}
+                                    onMove={handleMove}
+                                    className="aspect-square"
+                                />
+                                <ChessControls
+                                    onFlipBoard={handleFlipBoard}
+                                    onReset={handleResetPosition}
+                                />
+                            </ChessContainer>
+                        }
+                        rightPanel={
+                            <ChessEvaluationComponent
+                                onSubmit={handleSubmit}
+                                currentMove={currentRound}
+                                highScore={0}
+                                totalMoves={totalRounds}
+                            />
+                        }
+                    />
                 </div>
-            }
-            middlePanel={
-                <div aria-label="Chess board panel">
-                    <ChessContainer>
-                        <ChessBoard position={game.fen()} onMove={handleMove} />
-                        <ChessControls
-                            onFlipBoard={handleFlipBoard}
-                            onReset={handleResetPosition}
-                        />
-                    </ChessContainer>
-                </div>
-            }
-            rightPanel={
-                <div aria-label="Guessing controls panel">
-                    <ChessEvaluationComponent {...evaluationProps} />
-                </div>
-            }
-        />
+            </div>
+            <SettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                onSave={(settings: any) => {
+                    console.log('Settings saved:', settings);
+                    setIsSettingsOpen(false);
+                }}
+                gameMode="eval"
+            />
+        </div>
     );
 }

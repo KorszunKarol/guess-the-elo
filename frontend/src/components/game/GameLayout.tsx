@@ -1,23 +1,31 @@
 import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
+import { Panel } from './Panel';
 
 interface GameLayoutProps {
     leftPanel: ReactNode;    // Stockfish analysis
-    middlePanel: ReactNode;  // Chessboard
+    centerPanel: ReactNode;  // Chessboard
     rightPanel: ReactNode;   // Guessing panel
     className?: string;
 }
 
-function GameLayout({ leftPanel, middlePanel, rightPanel, className }: GameLayoutProps) {
+function GameLayout({ leftPanel, centerPanel, rightPanel, className }: GameLayoutProps) {
     return (
         <div className={cn(
-            "grid grid-cols-1 lg:grid-cols-[minmax(300px,1fr)_minmax(400px,600px)_minmax(300px,1fr)] gap-6",
-            "w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8",
+            "grid grid-cols-1 lg:grid-cols-[1fr_2fr_1fr] gap-4 lg:gap-8",
+            "w-full h-[600px] max-h-[90vh]",
             className
         )}>
-            <div className="lg:col-span-1">{leftPanel}</div>
-            <div className="lg:col-span-1">{middlePanel}</div>
-            <div className="lg:col-span-1">{rightPanel}</div>
+            {/* Left Panel - Stockfish Analysis */}
+            <Panel className="h-full overflow-auto">{leftPanel}</Panel>
+
+            {/* Center Panel - Chessboard */}
+            <Panel className="h-full flex items-center justify-center p-4">
+                {centerPanel}
+            </Panel>
+
+            {/* Right Panel - Guessing Interface */}
+            <Panel className="h-full overflow-auto">{rightPanel}</Panel>
         </div>
     );
 }

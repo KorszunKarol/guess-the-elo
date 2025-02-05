@@ -38,8 +38,6 @@
     }
 }
 
-
-
 @keyframes gradient-shift {
     0% {
         opacity: 0.5;
@@ -57,4 +55,13 @@
 
 .animate-gradient-shift {
     animation: gradient-shift 4s ease infinite;
+}
+
+.bg-chess-pattern {
+  background-image:
+    radial-gradient(circle at 1px 1px,
+      hsl(var(--foreground)/0.1) 1px,
+      transparent 0
+    );
+  background-size: 40px 40px;
 }

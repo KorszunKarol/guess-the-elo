@@ -11,14 +11,13 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
-  const isGamePage = pathname?.includes('guess-the-eval') || pathname?.includes('guess-the-elo');
 
   return (
     <div className="min-h-[100dvh] grid grid-rows-[auto_1fr] bg-gray-900 text-white">
       <ChessBackground />
       <BackgroundDots />
-      {!isGamePage && <NavigationWrapper />}
-      <main className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-2xl">
+
+      <main className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-2xl h-[calc(100dvh-160px)]">
         {children}
       </main>
     </div>

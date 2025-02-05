@@ -50,7 +50,7 @@ function ChessLogo() {
 
 export function Navigation() {
     return (
-        <nav className="flex items-center justify-between px-6 pt-2 pb-3 bg-gray-900/80 backdrop-blur-sm border-b border-gray-700">
+        <nav className="flex items-center justify-between px-6 py-4 bg-gray-900/80 backdrop-blur-sm border-b border-gray-700 h-20"> {/* Increased height and padding */}
             <Link href="/" className="hover:opacity-90 transition-opacity">
                 <ChessLogo />
             </Link>
@@ -58,14 +58,14 @@ export function Navigation() {
                 <div className="flex items-center gap-4">
                     <Button
                         variant="ghost"
-                        className="text-gray-300 hover:text-white hover:bg-gray-700/50"
+                        className="text-gray-300 hover:text-white hover:bg-gray-700/50 h-10" // Increased button height
                         asChild
                     >
                         <Link href="#features">Features</Link>
                     </Button>
                     <Button
                         variant="ghost"
-                        className="text-gray-300 hover:text-white hover:bg-gray-700/50"
+                        className="text-gray-300 hover:text-white hover:bg-gray-700/50 h-10" // Increased button height
                         asChild
                     >
                         <Link href="#how-to-play">How to Play</Link>
@@ -74,14 +74,14 @@ export function Navigation() {
                 <div className="flex items-center gap-4">
                     <Button
                         variant="outline"
-                        className="rounded-lg border-gray-600 hover:bg-gray-700/30 hover:border-gray-500"
+                        className="rounded-lg border-gray-600 hover:bg-gray-700/30 hover:border-gray-500 h-10" // Increased button height
                         asChild
                     >
                         <Link href="/login">Login</Link>
                     </Button>
                     <Button
                         variant="gradient"
-                        className="rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
+                        className="rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all h-10" // Increased button height
                         asChild
                     >
                         <Link href="/register">Play for Free</Link>
@@ -89,9 +89,9 @@ export function Navigation() {
                 </div>
             </div>
             <Brain
-                className="w-8 h-8 text-blue-400"
+                className="w-10 h-10 text-blue-400" // Increased icon size
                 aria-hidden="true"
-                size={32}
+                size={40} // Increased size prop
                 color="#60a5fa"
             />
         </nav>

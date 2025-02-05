@@ -1,22 +1,7 @@
-   'use client';
+import { redirect } from 'next/navigation';
 
-   import { HeroSection } from '@/components/sections/HeroSection';
-   import { FeaturesSection } from '@/components/sections/FeaturesSection';
-   import { HowToPlaySection } from '@/components/sections/HowToPlaySection';
-   import { FAQSection } from '@/components/sections/FAQSection';
-   import { Footer } from '@/components/sections/Footer';
-   import { BackgroundDots } from '@/components/chess/BackgroundDots';
-
-   export default function HomePage() {
-     return (
-       <div className="min-h-screen bg-gray-900 text-white relative">
-         <BackgroundDots />
-         <HeroSection />
-         <FeaturesSection />
-         <HowToPlaySection />
-         <FAQSection />
-         <Footer />
-       </div>
-     );
-   }
+// Single default export for root page
+export default function RootPage() {
+  redirect('/home');
+}
 

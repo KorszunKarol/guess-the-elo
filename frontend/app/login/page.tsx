@@ -14,10 +14,12 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ChessBackground } from '@/components/landing/ChessBackground';
+import { BackgroundDots } from '@/components/landing/BackgroundDots';
 
 export default function LoginPage() {
     return (
         <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
+            <BackgroundDots />
             {/* Background Elements */}
             <div className="absolute inset-0 w-full h-full">
                 <div className="absolute top-1/4 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
