@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronUp, ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ChessEvaluationComponentProps {
     onSubmit: (evaluation: number) => void;
     currentMove: number;
     highScore: number;
     totalMoves: number;
+    className?: string;
 }
 
 export default function ChessEvaluationComponent({
@@ -19,6 +21,7 @@ export default function ChessEvaluationComponent({
     currentMove,
     highScore,
     totalMoves,
+    className,
 }: ChessEvaluationComponentProps) {
     const [evaluation, setEvaluation] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,7 +43,10 @@ export default function ChessEvaluationComponent({
     }
 
     return (
-        <Card className="w-full h-full bg-gray-900/50 backdrop-blur-sm border-gray-800">
+        <Card className={cn(
+            "w-full h-full bg-gray-900/50 backdrop-blur-sm border-gray-800",
+            className
+        )}>
             <CardContent className="p-6 space-y-6">
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">

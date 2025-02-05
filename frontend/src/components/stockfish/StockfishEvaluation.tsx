@@ -13,8 +13,13 @@ import {
 import { EngineSettings } from './EngineSettings';
 import { useStockfishAnalysis } from '@/hooks/stockfish/useStockfishAnalysis';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
-export default function StockfishEvaluation() {
+interface StockfishEvaluationProps {
+    className?: string;
+}
+
+export default function StockfishEvaluation({ className }: StockfishEvaluationProps) {
     const [showSettings, setShowSettings] = useState(false);
     const {
         evaluation,
@@ -39,7 +44,10 @@ export default function StockfishEvaluation() {
     };
 
     return (
-        <Card className="w-full h-full bg-gray-900/50 backdrop-blur-sm border-gray-800">
+        <Card className={cn(
+            "w-full h-full bg-gray-900/50 backdrop-blur-sm border-gray-800",
+            className
+        )}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
                     Engine Analysis

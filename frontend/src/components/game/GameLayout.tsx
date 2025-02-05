@@ -1,5 +1,7 @@
+'use client';
+
 import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { Panel } from './Panel';
 
 interface GameLayoutProps {
@@ -9,25 +11,28 @@ interface GameLayoutProps {
     className?: string;
 }
 
-function GameLayout({ leftPanel, centerPanel, rightPanel, className }: GameLayoutProps) {
+export function GameLayout({ leftPanel, centerPanel, rightPanel, className }: GameLayoutProps) {
     return (
         <div className={cn(
-            "grid grid-cols-1 lg:grid-cols-[1fr_2fr_1fr] gap-4 lg:gap-8",
-            "w-full h-[600px] max-h-[90vh]",
+            "grid grid-cols-1 lg:grid-cols-[minmax(300px,1fr)_minmax(600px,2fr)_minmax(300px,1fr)]",
+            "gap-6 w-full h-[700px] max-h-[85vh]",
+            "overflow-hidden",
             className
         )}>
             {/* Left Panel - Stockfish Analysis */}
-            <Panel className="h-full overflow-auto">{leftPanel}</Panel>
-
-            {/* Center Panel - Chessboard */}
-            <Panel className="h-full flex items-center justify-center p-4">
-                {centerPanel}
+            <Panel className="h-full overflow-y-auto scrollbar-hide">
+                {leftPanel}
             </Panel>
 
+            {/* Center Panel - Chessboard */}
+            <div className="h-full w-full flex items-center justify-center">
+                {centerPanel}
+            </div>
+
             {/* Right Panel - Guessing Interface */}
-            <Panel className="h-full overflow-auto">{rightPanel}</Panel>
+            <Panel className="h-full overflow-y-auto scrollbar-hide">
+                {rightPanel}
+            </Panel>
         </div>
     );
 }
-
-export { GameLayout };

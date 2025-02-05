@@ -62,6 +62,7 @@ export default function GuessTheEvalPage() {
             },
         },
     });
+    const [isFlipped, setIsFlipped] = useState(false);
 
     useEffect(() => {
         if (timeRemaining <= 0) return;
@@ -79,7 +80,7 @@ export default function GuessTheEvalPage() {
     };
 
     const handleFlipBoard = () => {
-        console.log('Flip board');
+        setIsFlipped(!isFlipped);
     };
 
     const handleResetPosition = () => {
@@ -137,14 +138,14 @@ export default function GuessTheEvalPage() {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-gray-900 text-white">
+        <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-gray-900/95 backdrop-blur-md min-h-screen">
             <Header
                 onProfileClick={() => setShowProfile(true)}
                 onSettingsClick={() => setIsSettingsOpen(true)}
                 onStatsClick={() => setShowStats(true)}
             />
-            <div className="w-full max-w-7xl mx-auto mt-6">
-                <div className="bg-gray-800 border border-gray-700 overflow-hidden rounded-lg">
+            <div className="w-full max-w-screen-2xl mx-auto mt-6">
+                <div className="bg-gray-800/80 border border-gray-700/50 backdrop-blur-lg rounded-xl shadow-2xl overflow-hidden w-full">
                     <GameHeader
                         currentRound={currentRound}
                         totalRounds={totalRounds}
@@ -156,15 +157,15 @@ export default function GuessTheEvalPage() {
                             <StockfishEvaluation />
                         }
                         centerPanel={
-                            <ChessContainer className="max-w-[90vw]">
+                            <ChessContainer
+                                className="w-full max-w-[min(600px,90vh)] aspect-square"
+                                onFlipBoard={handleFlipBoard}
+                            >
                                 <ChessBoard
                                     position={game.fen()}
                                     onMove={handleMove}
-                                    className="aspect-square"
-                                />
-                                <ChessControls
-                                    onFlipBoard={handleFlipBoard}
-                                    onReset={handleResetPosition}
+                                    className="aspect-square w-full h-full"
+                                    boardOrientation={isFlipped ? 'black' : 'white'}
                                 />
                             </ChessContainer>
                         }

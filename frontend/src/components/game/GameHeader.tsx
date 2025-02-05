@@ -1,10 +1,12 @@
 import { Clock, Flag } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface GameHeaderProps {
     currentRound: number;
     totalRounds: number;
     timeRemaining: number;
     title?: string;
+    className?: string;
 }
 
 function formatTime(seconds: number): string {
@@ -13,14 +15,13 @@ function formatTime(seconds: number): string {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
-function GameHeader({
-    currentRound,
-    totalRounds,
-    timeRemaining,
-    title = 'Current Position'
-}: GameHeaderProps) {
+function GameHeader({ className, currentRound, totalRounds, timeRemaining, title = 'Current Position' }: GameHeaderProps) {
     return (
-        <div className="p-6 flex items-center justify-between border-b border-gray-800 bg-gray-950">
+        <div className={cn(
+            "p-6 flex items-center justify-between border-b border-gray-800",
+            "bg-gray-900/50 backdrop-blur-sm",
+            className
+        )}>
             <h2 className="text-2xl font-bold text-gray-100">
                 {title}
             </h2>
