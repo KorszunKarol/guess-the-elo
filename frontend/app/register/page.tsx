@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Github } from 'lucide-react';
-import { ChessBackground } from '@/components/landing/ChessBackground';
+import { ChessBackground } from '@/components/sections/ChessBackground';
 import { BackgroundDots } from '@components/chess/BackgroundDots';
 
 export default function RegisterPage() {
@@ -30,7 +30,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Main Content */}
-            <div className="container relative z-10 min-h-screen flex flex-col items-center justify-center py-16">
+            <div className="container relative z-10 min-h-screen flex flex-col items-center justify-start pt-4 pb-16">
                 {/* Brand Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}

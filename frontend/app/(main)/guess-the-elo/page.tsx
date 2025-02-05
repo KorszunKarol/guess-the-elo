@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { Chess } from 'chess.js';
 import { ChessBoard } from './components/ChessBoard';
 import { EvaluationComponent } from './components/EvaluationComponent';
-import { GameControls } from './components/GameControls';
-import { Header } from './components/Header';
+import { Header, GameHeader, BoardControls, GameLayout } from '@/components/game';
 import { BackgroundDots } from './components/BackgroundDots';
 import { generateRandomPosition } from './utils/chessUtils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,12 +12,16 @@ import { SettingsModal } from './components/SettingsModal';
 import ProfilePage from './components/ProfilePage';
 import StatsPage from './components/StatsPage';
 import GameModeSwitcher from '@/app/components/GameModeSwitcher';
+import { ChessContainer } from '@/components/chess/ChessContainer';
+import { GuessPanel } from '@/components/game/GuessPanel';
+import { StockfishAnalysis } from '@/components/stockfish/StockfishAnalysis';
 
 export default function GuessTheElo() {
     const [game, setGame] = useState<Chess | null>(null);
     const [turn, setTurn] = useState<'White' | 'Black'>('White');
     const [highScore, setHighScore] = useState(0);
     const [round, setRound] = useState(1);
+    const [timeRemaining, setTimeRemaining] = useState(60); // 60 seconds per round
     const [settings, setSettings] = useState({
         roundDuration: 60,
         numberOfRounds: 5,
@@ -66,9 +69,16 @@ export default function GuessTheElo() {
         },
     });
 
-    const handleSettingsClick = () => {
-        setIsSettingsOpen(true);
-    };
+    // Timer effect
+    useEffect(() => {
+        if (timeRemaining <= 0) return;
+
+        const timer = setInterval(() => {
+            setTimeRemaining((prev) => prev - 1);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeRemaining]);
 
     useEffect(() => {
         const newGame = new Chess();
@@ -91,11 +101,28 @@ export default function GuessTheElo() {
     const handleEvaluationSubmit = (evaluation: { evaluation: number }) => {
         console.log('Evaluation submitted:', evaluation);
         setRound((prev) => Math.min(prev + 1, settings.numberOfRounds));
+        setTimeRemaining(settings.roundDuration); // Reset timer for next round
     };
 
     const handleSettingsSave = (newSettings: typeof settings) => {
         setSettings(newSettings);
         console.log('Settings updated:', newSettings);
+    };
+
+    const handlePrevMove = () => {
+        console.log('Previous move');
+    };
+
+    const handleNextMove = () => {
+        console.log('Next move');
+    };
+
+    const handleFlipBoard = () => {
+        console.log('Flip board');
+    };
+
+    const handleResetPosition = () => {
+        console.log('Reset position');
     };
 
     if (showProfile) {
@@ -131,35 +158,46 @@ export default function GuessTheElo() {
             <div className="container mx-auto px-4 py-8 relative z-10">
                 <Header
                     onProfileClick={() => setShowProfile(true)}
-                    onSettingsClick={handleSettingsClick}
+                    onSettingsClick={() => setIsSettingsOpen(true)}
                     onStatsClick={() => setShowStats(true)}
                 />
-                <div className="flex justify-center mt-8">
-                    <Card className="bg-gray-800 border-gray-700 overflow-hidden max-w-5xl w-full">
+                <div className="mt-8">
+                    <Card className="bg-gray-800 border-gray-700 overflow-hidden max-w-5xl w-full mx-auto">
+                        <GameHeader
+                            currentRound={round}
+                            totalRounds={settings.numberOfRounds}
+                            timeRemaining={timeRemaining}
+                            title="Guess the Elo"
+                        />
                         <CardContent className="p-4">
-                            <div className="flex flex-col lg:flex-row justify-center items-start gap-4">
-                                <div className="w-full lg:w-auto flex-shrink-0">
-                                    {game && <ChessBoard game={game} />}
-                                    <GameControls
-                                        onPrevMove={() =>
-                                            console.log('Previous move')
-                                        }
-                                        onNextMove={() =>
-                                            console.log('Next move')
-                                        }
-                                        canGoPrev={false}
-                                        canGoNext={false}
+                            <GameLayout
+                                leftPanel={
+                                    <StockfishAnalysis
+                                        position={game.fen()}
+                                        depth={10} // or your preferred depth
                                     />
-                                </div>
-                                <div className="w-full lg:w-96 flex-shrink-0">
-                                    <EvaluationComponent
+                                }
+                                middlePanel={
+                                    <ChessContainer>
+                                        <ChessBoard position={game.fen()} onMove={handleMove} />
+                                        <BoardControls
+                                            onPrevMove={handlePrevMove}
+                                            onNextMove={handleNextMove}
+                                            onFlipBoard={handleFlipBoard}
+                                            onReset={handleResetPosition}
+                                            canGoPrev={false}
+                                            canGoNext={false}
+                                        />
+                                    </ChessContainer>
+                                }
+                                rightPanel={
+                                    <GuessPanel
                                         onSubmit={handleEvaluationSubmit}
-                                        turn={turn}
-                                        highScore={highScore}
+                                        currentGuess={currentGuess}
                                         round={round}
                                     />
-                                </div>
-                            </div>
+                                }
+                            />
                         </CardContent>
                     </Card>
                 </div>

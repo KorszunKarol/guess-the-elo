@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Brain } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
+import { Brain } from 'lucide-react';
 
 function ChessLogo() {
     return (
@@ -49,46 +50,49 @@ function ChessLogo() {
 
 export function Navigation() {
     return (
-        <nav className="flex justify-between items-center mb-16 px-6 py-4 bg-gray-900/80 backdrop-blur-sm border-b border-gray-700">
+        <nav className="flex items-center justify-between px-6 pt-2 pb-3 bg-gray-900/80 backdrop-blur-sm border-b border-gray-700">
             <Link href="/" className="hover:opacity-90 transition-opacity">
                 <ChessLogo />
             </Link>
-            <div className="flex items-center gap-6">
-                <Button
-                    variant="ghost"
-                    className="text-gray-300 hover:text-white hover:bg-gray-700/50"
-                    asChild
-                >
-                    <Link href="#features">Features</Link>
-                </Button>
-                <Button
-                    variant="ghost"
-                    className="text-gray-300 hover:text-white hover:bg-gray-700/50"
-                    asChild
-                >
-                    <Link href="#how-to-play">How to Play</Link>
-                </Button>
-            </div>
-            <div className="flex items-center gap-4">
-                <Button
-                    variant="outline"
-                    className="border-gray-600 hover:bg-gray-700/30 hover:border-gray-500"
-                    asChild
-                >
-                    <Link href="/login">Login</Link>
-                </Button>
-                <Button
-                    variant="gradient"
-                    className="hover:from-blue-600 hover:to-purple-700 transition-all"
-                    asChild
-                >
-                    <Link href="/register">Play for Free</Link>
-                </Button>
+            <div className="flex items-center gap-8 ml-auto mr-8">
+                <div className="flex items-center gap-4">
+                    <Button
+                        variant="ghost"
+                        className="text-gray-300 hover:text-white hover:bg-gray-700/50"
+                        asChild
+                    >
+                        <Link href="#features">Features</Link>
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        className="text-gray-300 hover:text-white hover:bg-gray-700/50"
+                        asChild
+                    >
+                        <Link href="#how-to-play">How to Play</Link>
+                    </Button>
+                </div>
+                <div className="flex items-center gap-4">
+                    <Button
+                        variant="outline"
+                        className="rounded-lg border-gray-600 hover:bg-gray-700/30 hover:border-gray-500"
+                        asChild
+                    >
+                        <Link href="/login">Login</Link>
+                    </Button>
+                    <Button
+                        variant="gradient"
+                        className="rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
+                        asChild
+                    >
+                        <Link href="/register">Play for Free</Link>
+                    </Button>
+                </div>
             </div>
             <Brain
                 className="w-8 h-8 text-blue-400"
                 aria-hidden="true"
-                strokeWidth={1.5}
+                size={32}
+                color="#60a5fa"
             />
         </nav>
     );

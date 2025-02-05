@@ -22,7 +22,7 @@ export function FeaturesSection() {
     };
 
     return (
-        <section id="features" className="py-20">
+        <section id="features" className="py-12 -mt-8">
             <div className="container mx-auto px-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -30,7 +30,9 @@ export function FeaturesSection() {
                     viewport={{ once: true }}
                     className="text-center mb-12"
                 >
-                    <h2 className="text-3xl font-bold mb-4">Game Modes</h2>
+                    <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-blue-600 bg-clip-text text-transparent">
+                        Game Modes
+                    </h2>
                     <p className="text-gray-400 max-w-2xl mx-auto">
                         Two challenging modes to test your chess analysis skills
                     </p>
@@ -43,26 +45,20 @@ export function FeaturesSection() {
                     className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto"
                 >
                     <motion.div variants={item}>
-                        <Link href="/guess-the-elo" className="block">
-                            <FeatureCard
-                                icon={
-                                    <Brain className="w-8 h-8 text-blue-400" />
-                                }
-                                title="Guess the Elo"
-                                description="Watch a game sequence and predict the players' rating. Can you tell a 1200 from a 2000? Put your analytical skills to the test!"
-                            />
-                        </Link>
+                        <FeatureCard
+                            icon={<Target className="w-6 h-6 text-blue-400" />}
+                            title="Guess the Elo"
+                            description="Watch a game and guess the players' rating. Test your ability to recognize skill levels from gameplay patterns."
+                            href="/play/elo"
+                        />
                     </motion.div>
                     <motion.div variants={item}>
-                        <Link href="/guess-the-eval" className="block">
-                            <FeatureCard
-                                icon={
-                                    <Target className="w-8 h-8 text-purple-400" />
-                                }
-                                title="Guess the Eval"
-                                description="Analyze critical positions and guess the engine evaluation. Train your ability to assess positions like a chess engine!"
-                            />
-                        </Link>
+                        <FeatureCard
+                            icon={<Brain className="w-6 h-6 text-purple-400" />}
+                            title="Guess the Eval"
+                            description="Analyze positions and predict the engine evaluation. Sharpen your tactical and positional assessment skills."
+                            href="/play/eval"
+                        />
                     </motion.div>
                 </motion.div>
             </div>

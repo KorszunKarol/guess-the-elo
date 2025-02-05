@@ -7,11 +7,11 @@ import { Icon } from '@/components/ui/icon';
 
 export function HeroSection() {
     return (
-        <section className="relative py-20">
+        <section className="relative py-12">
             <header className="relative min-h-[60vh] flex flex-col">
-                <div className="container relative z-10 mx-auto px-4 py-8 flex-1 flex flex-col">
+                <div className="container relative z-10 mx-auto px-4 flex-1 flex flex-col">
                     <Navigation />
-                    <div className="flex-1 flex items-center justify-center -mt-20">
+                    <div className="flex-1 flex items-center justify-center">
                         <div className="flex flex-col items-center text-center max-w-3xl">
                             <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
                                 ChessDetective
@@ -28,7 +28,7 @@ export function HeroSection() {
                                     className="bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 text-white px-12 py-4 rounded-lg font-semibold flex items-center gap-2 transition-colors text-lg"
                                 >
                                     Play for Free
-                                    <Icon icon={ArrowRight} className="w-5 h-5" aria-hidden="true" />
+                                    <Icon name={ArrowRight} className="w-5 h-5" aria-hidden="true" />
                                 </Link>
                                 <p className="text-gray-400 text-sm">
                                     No credit card required • Start playing

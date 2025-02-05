@@ -50,10 +50,15 @@ const shapes = [
 
 export function ChessBackground() {
     return (
-        <div className="fixed inset-0 -z-50">
+        <div className="fixed inset-0 -z-50" role="presentation" aria-hidden="true">
+            {/* Base gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20" />
-            <div className="absolute inset-0 bg-chess-pattern opacity-10" />
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+
+            {/* Dot pattern */}
+            <div className="absolute inset-0 bg-dot-pattern opacity-60" />
+
+            {/* Bottom fade */}
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent" />
         </div>
     );
 }

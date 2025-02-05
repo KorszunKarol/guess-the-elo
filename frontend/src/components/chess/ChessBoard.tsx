@@ -1,64 +1,52 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
-import dynamic from 'next/dynamic';
+import { useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useMemo, useState, useEffect } from 'react';
-
-const Chessboard = dynamic(
-    () => import('react-chessboard').then((mod) => mod.Chessboard),
-    { ssr: false }
-);
+import { Chessboard } from 'react-chessboard';
+import { cn } from '@/lib/utils';
 
 interface ChessBoardProps {
     position: string;
-    onMove?: () => void;
+    onMove: (move: string) => void;
+    className?: string;
 }
 
-export const ChessBoard = ({ position, onMove }: ChessBoardProps) => {
-    const [boardWidth, setBoardWidth] = useState(600);
-
-    useEffect(() => {
-        const updateDimensions = () => {
-            const width = window.innerWidth;
-            if (width < 768) {
-                setBoardWidth(Math.min(350, width - 40));
-            } else if (width < 1024) {
-                setBoardWidth(500);
-            } else {
-                setBoardWidth(600);
-            }
-        };
-
-        window.addEventListener('resize', updateDimensions);
-        updateDimensions();
-
-        return () => window.removeEventListener('resize', updateDimensions);
-    }, []);
-
-    const boardConfig = useMemo(
-        () => ({
-            position,
-            boardWidth,
-            arePiecesDraggable: false,
-            customDarkSquareStyle: { backgroundColor: '#374151' },
-            customLightSquareStyle: { backgroundColor: '#eeeeee' },
-            boardOrientation: 'white',
-            showBoardNotation: true,
-        }),
-        [position, boardWidth]
-    );
+export const ChessBoard = ({ position, onMove, className }: ChessBoardProps) => {
+    const containerRef = useRef<HTMLDivElement>(null);
 
     return (
-        <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-5">
-                <div className="flex justify-center">
-                    <DndProvider backend={HTML5Backend}>
-                        <Chessboard {...boardConfig} />
-                    </DndProvider>
-                </div>
-            </CardContent>
-        </Card>
+        <div
+            ref={containerRef}
+            className={cn(
+                "relative aspect-square w-full rounded-xl overflow-hidden",
+                "border border-gray-700/50 shadow-inner",
+                className
+            )}
+        >
+            {/* Background pattern */}
+            <div className="absolute inset-0 bg-chess-pattern opacity-20" />
+
+            <DndProvider backend={HTML5Backend}>
+                <Chessboard
+                    position={position}
+                    boardWidth={containerRef.current?.offsetWidth || 600}
+                    onPieceDrop={(source, target) => {
+                        onMove(`${source}-${target}`);
+                        return true;
+                    }}
+                    customBoardStyle={{
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                    }}
+                    customDarkSquareStyle={{
+                        backgroundColor: '#334155', // slate-700
+                    }}
+                    customLightSquareStyle={{
+                        backgroundColor: '#475569', // slate-600
+                    }}
+                />
+            </DndProvider>
+        </div>
     );
 };

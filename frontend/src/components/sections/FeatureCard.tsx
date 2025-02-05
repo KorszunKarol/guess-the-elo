@@ -5,9 +5,10 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface FeatureCardProps {
-    icon: ReactNode;
+    icon: React.ReactNode;
     title: string;
     description: string;
+    href?: string;
     className?: string;
 }
 
@@ -15,6 +16,7 @@ export function FeatureCard({
     icon,
     title,
     description,
+    href,
     className,
 }: FeatureCardProps) {
     return (

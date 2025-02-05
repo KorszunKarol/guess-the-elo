@@ -3,9 +3,9 @@ import { fontFamily } from 'tailwindcss/defaultTheme'
 
 const config: Config = {
   content: [
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './lib/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{ts,tsx}',
+    './src/components/**/*.{ts,tsx}',
+    './src/lib/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
@@ -21,8 +21,12 @@ const config: Config = {
         },
         // ... rest of your color definitions
       },
+      fontFamily: {
+        sans: ['var(--font-sans)', ...fontFamily.sans],
+      },
     },
   },
   plugins: [],
 }
+
 export default config

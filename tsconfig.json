@@ -3,4 +3,11 @@
   "@components/chess/*": ["./frontend/src/components/chess/*"],
   "@sections/*": ["./frontend/src/components/sections/*"],
   "@layout/*": ["./frontend/src/components/layout/*"]
+},
+"compilerOptions": {
+  "baseUrl": ".",
+  "paths": {
+    "@/*": ["./src/*"],
+    "@/components/ui/*": ["./src/components/ui/*"]
+  }
 }

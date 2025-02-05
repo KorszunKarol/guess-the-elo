@@ -1,0 +1,116 @@
+---
+description: for styling and using css
+globs: 
+---
+# Tailwind CSS Excellence Guide
+
+## 🎨 Theming & Configuration
+- **Semantic Colors**
+  ```typescript:tailwind.config.js
+  theme: {
+    extend: {
+      colors: {
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))'
+      }
+    }
+  }
+  ```
+
+- **Dark Mode**
+  Use CSS variables with `dark:` variant:
+  ```css:globals.css
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+  }
+  ```
+
+## 🧩 Component Patterns
+- **Class Composition**
+  Use `cn()` utility for conditional classes:
+  ```typescript
+  <div className={cn(
+    "bg-card text-card-foreground shadow-sm",
+    isActive && "ring-2 ring-primary"
+  )}>
+  ```
+
+- **Shadcn Integration**
+  Extend base components with additional styles:
+  ```typescript:components/ui/button.tsx
+  const buttonVariants = cva(
+    "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2",
+    {
+      variants: {
+        variant: {
+          premium: "bg-gradient-to-r from-blue-400 to-purple-600 text-white"
+        }
+      }
+    }
+  )
+  ```
+
+## 📱 Responsive Design
+- **Breakpoint Strategy**
+  Mobile-first responsive utilities:
+  ```tsx
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  ```
+
+- **Fluid Typography**
+  Use viewport-based units:
+  ```tsx
+  <h1 className="text-4xl md:text-5xl lg:text-6xl">
+  ```
+
+## ♿ Accessibility Essentials
+- **Focus States**
+  Visible focus rings:
+  ```tsx
+  <button className="focus:ring-2 focus:ring-primary focus:ring-offset-2">
+  ```
+
+- **ARIA Labels**
+  ```tsx
+  <button aria-label="Close modal">
+    <XIcon className="h-6 w-6" />
+  </button>
+  ```
+
+## 🚀 Performance Optimization
+- **Purge Configuration**
+  ```javascript:tailwind.config.js
+  content: [
+    './app/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './lib/**/*.{ts,tsx}'
+  ]
+  ```
+
+- **Layer Management**
+  Use `@layer` for custom styles:
+  ```css:globals.css
+  @layer components {
+    .gradient-text {
+      @apply bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent;
+    }
+  }
+  ```
+
+## ✅ Best Practice Checklist
+1. Use semantic HTML elements
+2. Maintain consistent spacing scale
+3. Limit custom CSS to 10% of total styles
+4. Use Tailwind's opacity modifiers
+5. Prefer flex/grid over absolute positioning
+6. Audit color contrast ratios
+7. Use JIT mode in development
+8. Sort class names consistently
+9. Extract repeating patterns to components
+10. Test responsive breakpoints
+
+[View full implementation in codebase →](mdc:#codebase)

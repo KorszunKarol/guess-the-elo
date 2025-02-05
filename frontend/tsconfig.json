@@ -15,17 +15,7 @@
     "module": "esnext",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@lib/*": ["./src/lib/*"],
-      "@components/*": ["./src/components/*"],
-      "@components/chess/*": ["./src/components/chess/*"],
-      "@components/game/*": ["./src/components/game/*"],
-      "@components/stockfish/*": ["./src/components/stockfish/*"],
-      "@sections/*": ["./src/components/sections/*"],
-      "@layout/*": ["./src/components/layout/*"],
-      "@hooks/*": ["./src/hooks/*"],
-      "@types/*": ["./src/types/*"],
-      "@ui/*": ["./src/components/ui/*"]
+      "@/*": ["./src/*"]
     },
     "plugins": [
       {

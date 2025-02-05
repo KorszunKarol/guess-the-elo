@@ -1,16 +1,19 @@
 'use client';
 
 import { LucideProps } from 'lucide-react';
-import { IconContext } from 'lucide-react';
+import * as lucide from 'lucide-react';
 
 export function IconProvider({ children }: { children: React.ReactNode }) {
   return (
-    <IconContext.Provider
+    <lucide.LucideProvider
       value={{
-        className: undefined // This prevents Lucide from adding its default classes
+        defaultProps: {
+          strokeWidth: 1.5,
+          className: undefined
+        }
       }}
     >
       {children}
-    </IconContext.Provider>
+    </lucide.LucideProvider>
   );
 }

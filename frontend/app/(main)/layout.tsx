@@ -1,16 +1,26 @@
-import { ChessBackground } from '@/components/sections/ChessBackground'
+'use client';
 
-export default function MainLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+import { usePathname } from 'next/navigation';
+import { ChessBackground } from '@/components/sections/ChessBackground';
+import { BackgroundDots } from '@/components/chess/BackgroundDots';
+import { NavigationWrapper } from '@/components/sections/NavigationWrapper';
+
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function MainLayout({ children }: MainLayoutProps) {
+  const pathname = usePathname();
+  const isGamePage = pathname?.includes('guess-the-eval') || pathname?.includes('guess-the-elo');
+
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 relative overflow-hidden">
+    <div className="min-h-[100dvh] grid grid-rows-[auto_1fr] bg-gray-900 text-white">
       <ChessBackground />
-      <div className="relative z-10 container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <BackgroundDots />
+      {!isGamePage && <NavigationWrapper />}
+      <main className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-2xl">
         {children}
-      </div>
+      </main>
     </div>
-  )
+  );
 }
