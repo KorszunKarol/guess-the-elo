@@ -1,0 +1,6 @@
+export * from './HeroSection'
+export * from './FeaturesSection'
+export * from './HowToPlaySection'
+export * from './FAQSection'
+export * from './ChessBackground'
+export * from './Footer'

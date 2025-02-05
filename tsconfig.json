@@ -1,0 +1,6 @@
+"paths": {
+  "@components/*": ["./frontend/src/components/*"],
+  "@components/chess/*": ["./frontend/src/components/chess/*"],
+  "@sections/*": ["./frontend/src/components/sections/*"],
+  "@layout/*": ["./frontend/src/components/layout/*"]
+}

@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@radix-ui/react-collapsible": "^1.1.1",
-    "framer-motion": "^11.13.1",
-    "stockfish.js": "^10.0.2"
-  }
-}
