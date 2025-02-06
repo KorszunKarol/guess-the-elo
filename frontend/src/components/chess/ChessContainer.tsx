@@ -10,27 +10,31 @@ interface ChessContainerProps {
 }
 
 export const ChessContainer = ({ children, className, onFlipBoard }: ChessContainerProps) => {
-    // Split children into chessboard and controls
     const childrenArray = Array.isArray(children) ? children : [children];
     const [chessboard] = childrenArray;
 
     return (
         <div className={cn(
-            "relative isolate flex flex-col items-center justify-center",
-            "w-full max-w-[min(600px,90vh)] aspect-square",
-            "mx-auto",
+            "relative flex flex-col items-center justify-center",
+            "w-full h-[80vh] min-h-[500px] max-h-[700px]",
+            "mx-auto z-10",
             className
         )}>
             {/* Background gradient */}
             <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/80 backdrop-blur-lg border border-gray-700/30 shadow-2xl" />
 
-            {/* Chessboard */}
-            <div className="relative w-full h-full">
-                {chessboard}
+            {/* Chessboard wrapper */}
+            <div className="relative w-full h-full flex items-center justify-center p-4">
+                <div className="relative" style={{
+                    width: 'min(600px, 100%, 70vh)',
+                    height: 'min(600px, 100%, 70vh)',
+                }}>
+                    {chessboard}
+                </div>
             </div>
 
             {/* Flip board button */}
-            <div className="absolute -bottom-8 left-0 z-50">
+            <div className="absolute -bottom-8 left-0">
                 <button
                     onClick={onFlipBoard}
                     className="flex items-center justify-center h-7 w-7 rounded-md bg-gray-700/80 hover:bg-gray-600 transition-colors"

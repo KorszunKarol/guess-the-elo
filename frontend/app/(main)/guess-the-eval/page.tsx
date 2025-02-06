@@ -138,14 +138,15 @@ export default function GuessTheEvalPage() {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-gray-900/95 backdrop-blur-md min-h-screen">
+        <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-gray-900/95 min-h-screen">
             <Header
                 onProfileClick={() => setShowProfile(true)}
                 onSettingsClick={() => setIsSettingsOpen(true)}
                 onStatsClick={() => setShowStats(true)}
             />
+
             <div className="w-full max-w-screen-2xl mx-auto mt-6">
-                <div className="bg-gray-800/80 border border-gray-700/50 backdrop-blur-lg rounded-xl shadow-2xl overflow-hidden w-full">
+                <div className="bg-gray-800/90 border border-gray-700/50 rounded-xl shadow-2xl overflow-hidden w-full">
                     <GameHeader
                         currentRound={currentRound}
                         totalRounds={totalRounds}
@@ -157,17 +158,19 @@ export default function GuessTheEvalPage() {
                             <StockfishEvaluation />
                         }
                         centerPanel={
-                            <ChessContainer
-                                className="w-full max-w-[min(600px,90vh)] aspect-square"
-                                onFlipBoard={handleFlipBoard}
-                            >
-                                <ChessBoard
-                                    position={game.fen()}
-                                    onMove={handleMove}
-                                    className="aspect-square w-full h-full"
-                                    boardOrientation={isFlipped ? 'black' : 'white'}
-                                />
-                            </ChessContainer>
+                            <div className="relative isolate z-10 h-full">
+                                <ChessContainer
+                                    className="w-full max-w-[min(800px,95vh)] aspect-square"
+                                    onFlipBoard={handleFlipBoard}
+                                >
+                                    <ChessBoard
+                                        position={game.fen()}
+                                        onMove={handleMove}
+                                        className="aspect-square w-full h-full"
+                                        boardOrientation={isFlipped ? 'black' : 'white'}
+                                    />
+                                </ChessContainer>
+                            </div>
                         }
                         rightPanel={
                             <ChessEvaluationComponent
@@ -175,6 +178,7 @@ export default function GuessTheEvalPage() {
                                 currentMove={currentRound}
                                 highScore={0}
                                 totalMoves={totalRounds}
+                                position={game.fen()}
                             />
                         }
                     />
