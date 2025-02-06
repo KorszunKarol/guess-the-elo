@@ -4,9 +4,12 @@ module.exports = {
       colors: {
         chess: {
           dark: 'hsl(217.2 32.6% 17.5%)',
+          boardDark: '#2d3748',
+          boardDark700: '#334155',
           light: 'hsl(210 40% 98%)',
           border: 'hsl(217.2 32.6% 17.5%)',
-          control: 'hsl(217.2 32.6% 17.5% / 0.2)'
+          control: 'hsl(217.2 32.6% 17.5% / 0.2)',
+          boardLight: '#cbd5e1'
         }
       },
       boxShadow: {

@@ -8,12 +8,12 @@ import { Header } from '@/components/game';
 import { Card } from '@/components/ui/card';
 import { SettingsModal } from '@/components/chess/SettingsModal';
 import StockfishEvaluation from '@/components/stockfish/StockfishEvaluation';
-import { GameHeader, BoardControls } from '@/components/game';
-import { ChessContainer } from '@/components/chess/ChessContainer';
-import { ChessControls } from '@/components/chess/ChessControls';
 import { GameLayout } from '@/components/game/GameLayout';
 import ProfilePage from '@/components/chess/ProfilePage';
 import StatsPage from '@/components/chess/StatsPage';
+import { BoardControls } from '@/components/game';
+import { ChessContainer } from '@/components/chess/ChessContainer';
+import { Clock } from 'lucide-react';
 
 export default function GuessTheEvalPage() {
     const [game, setGame] = useState<Chess>(new Chess());
@@ -138,21 +138,15 @@ export default function GuessTheEvalPage() {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-gray-900/95 min-h-screen">
+        <div className="flex flex-col items-center justify-start p-0 bg-gray-900/95 min-h-screen">
             <Header
                 onProfileClick={() => setShowProfile(true)}
                 onSettingsClick={() => setIsSettingsOpen(true)}
                 onStatsClick={() => setShowStats(true)}
             />
 
-            <div className="w-full max-w-screen-2xl mx-auto mt-6">
+            <div className="w-full max-w-screen-2xl mx-auto mt-1">
                 <div className="bg-gray-800/90 border border-gray-700/50 rounded-xl shadow-2xl overflow-hidden w-full">
-                    <GameHeader
-                        currentRound={currentRound}
-                        totalRounds={totalRounds}
-                        timeRemaining={timeRemaining}
-                        title="Guess the Eval"
-                    />
                     <GameLayout
                         leftPanel={
                             <StockfishEvaluation />
@@ -173,13 +167,28 @@ export default function GuessTheEvalPage() {
                             </div>
                         }
                         rightPanel={
-                            <ChessEvaluationComponent
-                                onSubmit={handleSubmit}
-                                currentMove={currentRound}
-                                highScore={0}
-                                totalMoves={totalRounds}
-                                position={game.fen()}
-                            />
+                            <div className="flex flex-col gap-4 h-full">
+                                <div className="flex justify-between items-center px-4 pt-4">
+                                    <h2 className="text-xl font-bold text-blue-400">Guess the Eval</h2>
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-sm font-medium text-gray-300">
+                                            Round: {currentRound}/{totalRounds}
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-sm font-medium text-purple-400">
+                                            <Clock className="h-4 w-4" />
+                                            {timeRemaining}s
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <ChessEvaluationComponent
+                                    onSubmit={handleSubmit}
+                                    currentMove={currentRound}
+                                    highScore={0}
+                                    totalMoves={totalRounds}
+                                    position={game.fen()}
+                                />
+                            </div>
                         }
                     />
                 </div>

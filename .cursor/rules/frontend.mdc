@@ -2,313 +2,69 @@
 description: for frontend development
 globs: *.tsx
 ---
-# Next.js + TypeScript Supercharged Guidelines
 
-## Core Principles
-- **Type Safety First**: Strict TypeScript enforcement
-- **Server Components Priority**: Maximize server-side logic
-- **Performance by Default**: Built-in optimizations
-- **Modular Architecture**: Clean separation of concerns
-- **Component Composition**: Build with reusable primitives
-- **Progressive Enhancement**: Graceful feature degradation
+**Next.js + TypeScript Core Principles**
 
-## Project Structure (App Router)
-```
-src/
-├── app/
-│   ├── (auth)/           # Auth route group
-│   ├── (main)/           # Authenticated routes
-│   ├── api/              # API endpoints
-│   ├── _components/      # Shared UI (client/server)
-│   ├── _lib/             # Utilities/helpers
-│   └── layout.tsx        # Root layout
-├── components/
-│   ├── atoms/            # Primitive components
-│   ├── organisms/        # Complex UI compositions
-│   └── templates/        # Page layouts
-├── types/                # Global type definitions
-└── public/               # Static assets
-```
+**Project Structure**
+- Do: Group routes by concern (auth/main)
+- Not: Flat route structures
+- Do: Separate UI components by complexity (atoms/organisms)
+- Not: Monolithic component directories
 
-## TypeScript Standards
-### 1. Strict Configuration
-```json
-// tsconfig.json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true
-  }
-}
-```
+**Type Safety**
+- Do: Strict TS configs with noImplicitAny
+- Not: Use `any` escape hatches
+- Do: Brand primitive types (Email, UserID)
+- Not: Assume all strings are valid
 
-### 2. Type Design Principles
-- Prefer `interface` for public API definitions
-- Use `type` for complex unions/utilities
-- Avoid `any` - prefer `unknown` with type guards
-- Use branded types for domain primitives:
-```typescript
-type Email = string & { readonly __brand: 'Email' };
-```
+**Architecture**
+- Do: Server components first
+- Not: Client-side data waterfalls  
+- Do: Colocate data fetching with components
+- Not: Prop-drill server data
 
-## Next.js Best Practices
-### App Router Patterns
-```typescript
-// Layout-based authentication
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const session = await getServerSession()
-  if (!session) redirect('/login')
-  
-  return <>{children}</>
-}
-```
+**State Management**
+- Do: URL params for shared state
+- Not: Overuse global client state
+- Do: Server actions for mutations
+- Not: Client-side API routes
 
-### Data Fetching
-- Use native `fetch` with Next.js caching
-- Prefer server actions for mutations
-- Implement incremental static regeneration
-- Streaming with Suspense boundaries:
-```typescript
-<Suspense fallback={<Skeleton />}>
-  <AsyncComponent />
-</Suspense>
-```
+**Performance**
+- Do: Streaming with Suspense
+- Not: Whole-page loading spinners
+- Do: Cache static data aggressively
+- Not: Refetch unchanged data
 
-### API Routes
-```typescript
-// Robust error handling
-export async function GET() {
-  try {
-    const data = await db.query()
-    return NextResponse.json(data)
-  } catch (error) {
-    console.error(error)
-    return NextResponse.json(
-      { error: "Database error" },
-      { status: 500 }
-    )
-  }
-}
-```
+**Testing**
+- Do: Test user flows over implementation
+- Not: Focus solely on coverage %
+- Do: Component integration tests
+- Not: Mock everything unit tests
 
-## React-Specific Patterns
-### 1. Component Composition
-```typescript
-// Compound component pattern
-const Card = ({ children }: { children: React.ReactNode }) => (
-  <div className="card">{children}</div>
-)
+**Security**
+- Do: Validate ALL inputs
+- Not: Trust client-side validation
+- Do: Sanitize dynamic content
+- Not: Use dangerouslySetInnerHTML
 
-const CardHeader = ({ title }: { title: string }) => (
-  <h2 className="card-header">{title}</h2>
-)
+**Code Quality**
+- Do: Atomic commits
+- Not: Monolithic "fix everything" commits
+- Do: Prefer composition
+- Not: Deep component inheritance
+- Do: Memoize strategically 
+- Not: Premature optimization
 
-const CardBody = ({ children }: { children: React.ReactNode }) => (
-  <div className="card-body">{children}</div>
-)
-```
+**Accessibility**
+- Do: Semantic HTML first
+- Not: Div soup with ARIA overrides
+- Do: Keyboard nav testing
+- Not: Mouse-only interactions
 
-### 2. Custom Hooks
-```typescript
-// Abstract complex logic
-const useDebouncedSearch = (delay = 300) => {
-  const [searchTerm, setSearchTerm] = useState('')
-  const debouncedTerm = useDebounce(searchTerm, delay)
-  
-  return { searchTerm, debouncedTerm, setSearchTerm }
-}
-```
-
-### 3. Context Optimization
-```typescript
-const UserContext = createContext<{ user: User | null }>({ user: null })
-
-const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user] = useSyncExternalStore(authSubscribe, getCurrentUser)
-  const value = useMemo(() => ({ user }), [user])
-  
-  return <UserContext.Provider value={value}>{children}</UserContext.Provider>
-}
-```
-
-### 4. Error Boundaries
-```typescript
-class ErrorBoundary extends Component<{ fallback: ReactNode }, { hasError: boolean }> {
-  state = { hasError: false }
-
-  static getDerivedStateFromError() {
-    return { hasError: true }
-  }
-
-  render() {
-    return this.state.hasError ? this.props.fallback : this.props.children
-  }
-}
-```
-
-## Component Architecture
-### State Management
-- **Server State**: `fetch`/`cache`/`revalidate`
-- **Client State**: Zustand for global, `useReducer` for complex
-- **URL State**: Search params for shared filters
-- **Form State**: React Hook Form with Zod integration
-
-### Performance Optimization
-1. **Memoization**
-```typescript
-const MemoizedList = React.memo(List)
-
-const stableCallback = useCallback(() => {
-  // callback logic
-}, [deps])
-```
-
-2. **Virtualization**
-```typescript
-import { FixedSizeList } from 'react-window'
-
-const VirtualList = ({ items }) => (
-  <FixedSizeList height={400} itemCount={items.length} itemSize={50}>
-    {({ index, style }) => (
-      <div style={style}>{items[index]}</div>
-    )}
-  </FixedSizeList>
-)
-```
-
-3. **Dynamic Imports**
-```typescript
-const Map = dynamic(() => import('@/components/Map'), {
-  ssr: false,
-  loading: () => <Skeleton />
-})
-```
-
-## Testing Strategy
-### Testing Pyramid
-- **Unit Tests**: Vitest/Jest for core logic
-- **Component Tests**: Testing Library for UI
-- **Integration Tests**: Cypress Component Testing
-- **E2E**: Playwright for user flows
-
-### Example Component Test
-```typescript
-describe('Button', () => {
-  it('should render loading state', () => {
-    render(<Button loading>Submit</Button>)
-    expect(screen.getByRole('button', { name: /loading/i })).toBeDisabled()
-  })
-})
-```
-
-## Security Practices
-- **Validation**: Zod schema parsing
-- **Sanitization**: DOMPurify for HTML content
-- **Headers**: CSP with nonce-based scripts
-- **Auth**: NextAuth.js with credential hardening
-- **Security.txt**: Standard security contact file
-
-## Performance Checklist
-1. **Core Web Vitals**
-   - LCP under 2.5s
-   - FID under 100ms
-   - CLS under 0.1
-
-2. **Optimization Strategies**
-   - Image optimization with `next/image`
-   - Font subsetting and preloading
-   - Critical CSS extraction
-   - Brotli compression
-
-3. **Caching**
-   - CDN-level caching
-   - Redis for ISR data
-   - Service worker for static assets
-
-## SOLID Principles Implementation
-1. **Single Responsibility**
-   - Components focused on single task
-   - Custom hooks for complex logic
-
-2. **Open/Closed**
-   - Extend via props composition
-   - Higher-Order Components for cross-cutting concerns
-
-3. **Liskov Substitution**
-   - Interface-driven component APIs
-   - Polymorphic components with `as` prop
-
-4. **Interface Segregation**
-   - Narrow component prop interfaces
-   - Split complex types into focused interfaces
-
-5. **Dependency Inversion**
-   - Abstract service layers
-   - Dependency injection via context
-
-## Advanced Patterns
-### 1. Edge Runtime
-```typescript
-export const config = { runtime: 'edge' }
-
-export default function EdgeAPI(req: Request) {
-  return new Response('Edge response')
-}
-```
-
-### 2. Middleware
-```typescript
-export function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    return validateAdminSession(request)
-  }
-}
-```
-
-### 3. Server Actions
-```typescript
-'use server'
-export async function createPost(data: FormData) {
-  const validated = postSchema.parse(Object.fromEntries(data))
-  await db.post.create({ data: validated })
-  revalidatePath('/posts')
-}
-```
-
-## Accessibility Standards
-- **Semantic HTML**: Proper element hierarchy
-- **ARIA Roles**: Landmark roles and labels
-- **Keyboard Navigation**: Full tab support
-- **Focus Management**: Logical focus order
-- **Screen Reader Testing**: VoiceOver/ChromeVox
-
-## Code Quality
-### Tooling
-- **ESLint**: Next.js core config + React hooks rules
-- **Prettier**: Opinionated formatting
-- **Husky**: Pre-commit validation
-- **Commitlint**: Conventional commits
-
-### Documentation
-- **TSDoc**: Type annotations
-- **Storybook**: Component catalog
-- **Swagger**: API documentation
-
-## Anti-Patterns to Avoid
-1. **Prop Drilling**: Use context instead
-2. **Large Components**: Split into composable pieces
-3. **Uncontrolled Rerenders**: Memoize strategically
-4. **Client-Side Data Fetching**: Prefer server-side
-5. **Global State Overuse**: Prefer colocated state
-
-## Monitoring & Observability
-- **Error Tracking**: Sentry/LogRocket
-- **Performance Monitoring**: SpeedCurve
-- **Analytics**: Privacy-first solutions
-- **Logging**: Structured logs with Pino
-
+**SOLID Principles**
+- Do: Single-component responsibility
+- Not: God components
+- Do: Narrow prop interfaces
+- Not: Complex prop drilling
+- Do: Dependency injection
+- Not: Hard-coded services
