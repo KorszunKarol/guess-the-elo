@@ -3,7 +3,7 @@ import { fontFamily } from 'tailwindcss/defaultTheme'
 
 const config: Config = {
   content: [
-    './app/**/*.{ts,tsx}',
+    './src/app/**/*.{ts,tsx}',
     './src/components/**/*.{ts,tsx}',
     './src/lib/**/*.{ts,tsx}',
   ],

@@ -38,14 +38,6 @@ yarn-error.log*
 # Vercel
 .vercel
 
-frontend/.next/
-.next/
-**/.next/
-**/frontend/.next/
-**/.next/**
-frontend/.next/**
-
-cursor/
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
@@ -57,3 +49,14 @@ next-env.d.ts
 **/public/sw.js.map
 **/public/workbox-*.js.map
 **/public/worker-*.js.map
+frontend/src/.next/
+
+.cursor/
+
+*.md
+*.txt
+*.pdf
+*.docx
+*.doc
+*.xls
+*.xlsx

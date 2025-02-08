@@ -1,0 +1,5 @@
+{
+  "/register/page": "app/register/page.js",
+  "/(main)/guess-the-eval/page": "app/(main)/guess-the-eval/page.js",
+  "/(marketing)/home/page": "app/(marketing)/home/page.js"
+}

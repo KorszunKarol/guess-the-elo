@@ -8,7 +8,7 @@ function BackgroundDots() {
 
     return (
         <div
-            className="fixed inset-0 -z-45"
+            className="fixed inset-0"
             style={{
                 backgroundImage: `
           radial-gradient(

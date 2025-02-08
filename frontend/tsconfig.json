@@ -15,7 +15,8 @@
     "module": "esnext",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/components/ui/*": ["./src/components/ui/*"]
     },
     "plugins": [
       {
@@ -34,11 +35,11 @@
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.css",
-    "**/*.module.css",
-    "**/*.mdx"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.css",
+    "src/**/*.module.css",
+    "src/**/*.mdx"
   ],
   "exclude": [
     "node_modules",
