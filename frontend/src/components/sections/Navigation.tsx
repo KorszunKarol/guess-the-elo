@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Icon } from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
-import { Brain } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 function ChessLogo() {
     return (
@@ -50,51 +49,52 @@ function ChessLogo() {
 
 export function Navigation() {
     return (
-        <div className="sticky top-0 z-50 w-full">
-            {/* Blur layer - sits between background and content */}
-            <div className="absolute inset-0 -z-20 backdrop-blur-md" />
-
-            {/* Border - needs to be above blur layer */}
-            <div className="absolute inset-x-0 bottom-0 -z-10 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-            {/* Navigation content */}
-            <nav className="relative flex items-center justify-between px-6 py-6">
-                <Link href="/" className="hover:opacity-90 transition-opacity">
+        <div className="w-full">
+            <nav className="relative flex items-center justify-between px-6 h-16">
+                <Link href="/" className="hover:opacity-90 transition-opacity z-50">
                     <ChessLogo />
                 </Link>
-                <div className="flex items-center gap-10 ml-auto mr-16 text-lg">
-                    <div className="flex items-center gap-4">
-                        <Button
-                            variant="secondary"
-                            className="h-12 px-6"
-                            asChild
-                        >
-                            <Link href="#features">Features</Link>
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            className="h-12 px-6"
-                            asChild
-                        >
-                            <Link href="#how-to-play">How to Play</Link>
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            className="h-12 px-6"
-                            asChild
-                        >
-                            <Link href="#how-to-play">Pricing</Link>
-                        </Button>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Button
-                            variant="default"
-                            className="h-12 px-6 bg-gradient-to-r from-blue-400 to-purple-600 text-white"
-                            asChild
-                        >
-                            <Link href="/register">Play for Free</Link>
-                        </Button>
-                    </div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="top-4  flex max-w-fit rounded-full backdrop-blur-lg bg-white/5 shadow-[0_0_30px_-5px_rgba(0,0,0,0.2)] px-4 py-2 items-center justify-center space-x-4"
+                >
+                    <Link
+                        href="#features"
+                        className="relative text-gray-300 hover:text-blue-400 transition-colors px-3 py-1"
+                    >
+                        Features
+                    </Link>
+                    <Link
+                        href="#how-to-play"
+                        className="relative text-gray-300 hover:text-blue-400 transition-colors px-3 py-1"
+                    >
+                        How to Play
+                    </Link>
+                    <Link
+                        href="#pricing"
+                        className="relative text-gray-300 hover:text-blue-400 transition-colors px-3 py-1"
+                    >
+                        Pricing
+                    </Link>
+                    <Link
+                        href="#contact"
+                        className="relative text-gray-300 hover:text-blue-400 transition-colors px-3 py-1"
+                    >
+                        Contact
+                    </Link>
+                </motion.div>
+
+                <div className="flex items-center z-50">
+                    <Button
+                        variant="default"
+                        className="h-12 px-6 bg-gradient-to-r from-blue-400 to-purple-600 text-white shadow-lg"
+                        asChild
+                    >
+                        <Link href="/register">Play for Free</Link>
+                    </Button>
                 </div>
             </nav>
         </div>
