@@ -11,7 +11,7 @@ import StockfishEvaluation from '@/components/stockfish/StockfishEvaluation';
 import { GameLayout } from '@/components/game/GameLayout';
 import ProfilePage from '@/components/chess/ProfilePage';
 import StatsPage from '@/components/chess/StatsPage';
-import { BoardControls } from '@/components/game';
+
 import { ChessContainer } from '@/components/chess/ChessContainer';
 import { Clock } from 'lucide-react';
 
@@ -141,6 +141,7 @@ export default function GuessTheEvalPage() {
 
 
         <div className="flex flex-col items-center justify-start p-0 bg-gray-900/95 min-h-screen">
+            <Header onProfileClick={() => setShowProfile(true)} onSettingsClick={() => setIsSettingsOpen(true)} onStatsClick={() => setShowStats(true)} />
             <div className="w-full max-w-screen-2xl mx-auto mt-1">
                 <div className="bg-gray-800/90 border border-gray-700/50 rounded-xl shadow-2xl overflow-hidden w-full">
                     <GameLayout

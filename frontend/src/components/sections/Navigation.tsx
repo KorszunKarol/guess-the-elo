@@ -74,7 +74,7 @@ export function Navigation() {
                         How to Play
                     </Link>
                     <Link
-                        href="#pricing"
+                        href="/pricing"
                         className="relative text-gray-300 hover:text-blue-400 transition-colors px-3 py-1"
                     >
                         Pricing

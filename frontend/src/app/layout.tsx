@@ -16,6 +16,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="preload"
+          href="/_next/static/wasm/stockfish-nnue-16-single.wasm"
+          as="fetch"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className={inter.className}>
         {/* This should be empty - all layouts are handled in route groups */}
         {children}

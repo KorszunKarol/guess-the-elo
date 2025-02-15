@@ -60,3 +60,15 @@ frontend/src/.next/
 *.doc
 *.xls
 *.xlsx
+*.md
+
+# Add under existing Next.js ignores
+frontend/.next/cache
+frontend/public/wasm/
+frontend/.next/static/webpack
+
+# Remove these existing rules (too broad)
+frontend/src/.next/
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js

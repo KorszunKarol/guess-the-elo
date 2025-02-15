@@ -54,15 +54,26 @@ export function FeaturesSection() {
 
     return (
         <section id="features" className="relative py-12 -mt-8 overflow-hidden min-h-[32rem]">
-            <div className="absolute inset-0 bg-gradient-to-bc from-slate-950/50 via-slate-950/80 to-slate-950/50" />
-            <DotPattern
-                width={32}
-                height={32}
-                cx={16}
-                cy={16}
-                cr={1.2}
-                className="absolute inset-0 h-full w-full opacity-90 [mask-image:radial-gradient(500px_circle_at_center,white,transparent)] dark:fill-white/25"
-            />
+            {/* Background gradients */}
+            <div className="absolute inset-0">
+                {/* Top gradient that matches hero bottom */}
+                <div className="absolute top-0 left-0 right-0 h-96 bg-gradient-to-b from-transparent via-slate-950/80 to-slate-950 pointer-events-none" />
+                {/* Base background */}
+                <div className="absolute inset-0 bg-slate-950" />
+                {/* Bottom gradient to blend with next section */}
+                <div className="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-t from-gray-900 via-slate-950 to-slate-950 pointer-events-none" />
+            </div>
+            {/* Dot pattern with masks */}
+            <div className="absolute inset-0 [mask-image:linear-gradient(to_bottom,transparent,white_15%,white_85%,transparent)]">
+                <DotPattern
+                    width={32}
+                    height={32}
+                    cx={16}
+                    cy={16}
+                    cr={1.2}
+                    className="absolute inset-0 h-full w-full opacity-90 [mask-image:radial-gradient(800px_circle_at_center,white,transparent)] dark:fill-white/40"
+                />
+            </div>
             <div className="container relative mx-auto px-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

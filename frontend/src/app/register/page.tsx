@@ -1,7 +1,11 @@
 'use client';
 
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { IconBrandGoogle } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { motion } from 'framer-motion';
 import {
     Card,
@@ -10,153 +14,156 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Github } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { ChessBackground } from '@/components/sections/ChessBackground';
 import { BackgroundDots } from '@/components/chess/BackgroundDots';
+import { RetroGrid } from "@/components/ui/retro-grid";
+
+function ChessLogo() {
+    return (
+        <Link href="/" className="flex items-center gap-2 absolute top-4 left-4 hover:opacity-80 transition-opacity">
+            <svg
+                viewBox="0 0 24 24"
+                width="32"
+                height="32"
+                className="text-blue-400"
+            >
+                <g fill="currentColor">
+                    <rect
+                        x="4"
+                        y="4"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        rx="2"
+                    />
+                    <rect
+                        x="4"
+                        y="4"
+                        width="8"
+                        height="8"
+                        className="opacity-40"
+                    />
+                    <rect
+                        x="12"
+                        y="12"
+                        width="8"
+                        height="8"
+                        className="opacity-40"
+                    />
+                </g>
+            </svg>
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                ChessDetective
+            </span>
+        </Link>
+    );
+}
 
 export default function RegisterPage() {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        // Handle registration logic here
+    };
+
     return (
-        <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-            <BackgroundDots />
-            <ChessBackground />
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4 relative overflow-hidden">
+            <ChessLogo />
+            <RetroGrid />
 
-            {/* Decorative Elements */}
-            <div className="absolute inset-0 w-full h-full">
-                <div className="absolute top-1/4 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-1/4 right-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl" />
-            </div>
-
-            {/* Main Content */}
-            <div className="container relative z-10 min-h-screen flex flex-col items-center justify-start pt-4 pb-16">
-                {/* Brand Header */}
+            <div className="max-w-md w-full mx-auto relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="mb-8 text-center"
+                    className="text-center mb-8"
                 >
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent mb-2">
-                        Welcome to ChessDetective
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                        ChessDetective
                     </h1>
-                    <p className="text-gray-400">
-                        Join our community of chess enthusiasts
+                    <p className="text-gray-400 mt-2">
+                        Create your free account
                     </p>
                 </motion.div>
 
-                {/* Registration Card */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.1 }}
-                    className="w-full max-w-md"
-                >
-                    <Card className="bg-[#374151] backdrop-blur-sm bg-opacity-80">
-                        <CardHeader className="space-y-1">
-                            <div className="flex items-center">
-                                <Link
-                                    href="/"
-                                    className="text-gray-400 hover:text-gray-300 transition-colors"
-                                >
-                                    <ArrowLeft className="w-5 h-5" />
-                                </Link>
-                                <CardTitle className="text-2xl font-bold text-blue-500 flex-grow text-center">
-                                    Create Account
-                                </CardTitle>
-                            </div>
-                            <CardDescription className="text-gray-400 text-center">
-                                Start your chess investigation journey
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="detective@example.com"
-                                    className="bg-[#1f2937] border-0"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    className="bg-[#1f2937] border-0"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="confirm">
-                                    Confirm Password
-                                </Label>
-                                <Input
-                                    id="confirm"
-                                    type="password"
-                                    className="bg-[#1f2937] border-0"
-                                />
-                            </div>
-                            <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600">
-                                Create Account
-                            </Button>
+                <div className="w-full bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl border border-gray-700">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="relative z-10"
+                    >
+                        <form className="space-y-6" onSubmit={handleSubmit}>
+                            <div className="space-y-4">
+                                <LabelInputContainer>
+                                    <Label className="text-gray-300">Email</Label>
+                                    <Input
+                                        placeholder="chessmaster@example.com"
+                                        type="email"
+                                        className="bg-gray-900 border-gray-700 text-white focus:border-blue-500"
+                                    />
+                                </LabelInputContainer>
 
-                            <div className="relative my-4">
-                                <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-t border-gray-600" />
-                                </div>
-                                <div className="relative flex justify-center text-xs">
-                                    <span className="bg-[#374151] px-2 text-gray-500 uppercase">
-                                        OR CONTINUE WITH
-                                    </span>
-                                </div>
+                                <LabelInputContainer>
+                                    <Label className="text-gray-300">Password</Label>
+                                    <Input
+                                        placeholder="••••••••"
+                                        type="password"
+                                        className="bg-gray-900 border-gray-700 text-white focus:border-blue-500"
+                                    />
+                                </LabelInputContainer>
                             </div>
 
-                            <Button
-                                variant="outline"
-                                className="w-full border border-gray-600 hover:bg-[#1f2937] text-gray-300"
+                            <button
+                                className="w-full bg-gradient-to-br from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all"
+                                type="submit"
                             >
-                                <Github className="mr-2 h-4 w-4" />
-                                Github
-                            </Button>
+                                Create Account
+                            </button>
 
-                            <div className="text-center text-sm">
-                                <span className="text-gray-500">
-                                    Already have an account?{' '}
-                                </span>
-                                <Link
-                                    href="/login"
-                                    className="text-blue-500 hover:underline"
+                            <div className="relative my-8">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-700"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-2 bg-gray-800 text-gray-400">Or continue with</span>
+                                </div>
+                            </div>
+
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                <button
+                                    type="button"
+                                    className="w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg border border-gray-700 transition-colors"
                                 >
+                                    <IconBrandGoogle className="h-5 w-5 text-blue-400" />
+                                    <span>Google</span>
+                                </button>
+                            </motion.div>
+
+                            <p className="text-center text-sm text-gray-400 mt-6">
+                                Already have an account?{" "}
+                                <Link href="/login" className="text-blue-400 hover:text-blue-300 transition-colors">
                                     Sign in
                                 </Link>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </motion.div>
-
-                {/* Trust Indicators */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="mt-8 flex gap-8 text-sm text-gray-400"
-                >
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full" />
-                        <span>1000+ active players</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                        <span>Secure & Private</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full" />
-                        <span>Free to play</span>
-                    </div>
-                </motion.div>
+                            </p>
+                        </form>
+                    </motion.div>
+                </div>
             </div>
         </div>
     );
 }
+
+const LabelInputContainer = ({
+    children,
+    className,
+}: {
+    children: React.ReactNode;
+    className?: string;
+}) => {
+    return (
+        <div className={cn("flex flex-col space-y-2 w-full", className)}>
+            {children}
+        </div>
+    );
+};

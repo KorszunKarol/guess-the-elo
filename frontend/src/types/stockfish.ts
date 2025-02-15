@@ -10,3 +10,12 @@ export interface EngineSettings {
     threads: number;
     autoAnalysis: boolean;
 }
+
+export interface StockfishWorkerMessage {
+    type: 'analysis' | 'complete' | 'error';
+    data?: {
+        evaluation?: number;
+        line?: StockfishLine;
+        message?: string;
+    };
+}
