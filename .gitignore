@@ -12,6 +12,9 @@ frontend/node_modules
 # Next.js
 /.next/
 /out/
+# Make sure to ignore the frontend/.next directory completely
+frontend/.next/
+frontend/.next/**/*
 
 # Production
 /build
@@ -49,7 +52,6 @@ next-env.d.ts
 **/public/sw.js.map
 **/public/workbox-*.js.map
 **/public/worker-*.js.map
-frontend/src/.next/
 
 .cursor/*
 
@@ -60,7 +62,6 @@ frontend/src/.next/
 *.doc
 *.xls
 *.xlsx
-*.md
 
 # Add under existing Next.js ignores
 frontend/.next/cache
@@ -68,7 +69,7 @@ frontend/public/wasm/
 frontend/.next/static/webpack
 
 # Remove these existing rules (too broad)
-frontend/src/.next/
-**/public/sw.js
-**/public/workbox-*.js
-**/public/worker-*.js
+# frontend/src/.next/
+# **/public/sw.js
+# **/public/workbox-*.js
+# **/public/worker-*.js
