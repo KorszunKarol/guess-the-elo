@@ -1,7 +1,12 @@
 export interface StockfishLine {
     move: string;
     evaluation: number;
+    evaluationText: string;
     sequence: string[];
+    depth: number;
+    multipv: number;
+    nodes: string;
+    time: string;
 }
 
 export interface EngineSettings {
@@ -9,13 +14,16 @@ export interface EngineSettings {
     multiPV: number;
     threads: number;
     autoAnalysis: boolean;
+    continuous: boolean;
 }
 
 export interface StockfishWorkerMessage {
-    type: 'analysis' | 'complete' | 'error';
+    type: 'analysis' | 'complete' | 'error' | 'ready' | 'started' | 'paused' | 'resumed' | 'progress' | 'update_settings' | 'debug';
     data?: {
         evaluation?: number;
+        evaluationText?: string;
         line?: StockfishLine;
         message?: string;
+        depth?: number;
     };
 }

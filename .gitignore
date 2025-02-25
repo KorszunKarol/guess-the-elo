@@ -51,7 +51,7 @@ next-env.d.ts
 **/public/worker-*.js.map
 frontend/src/.next/
 
-.cursor/
+.cursor/*
 
 *.md
 *.txt

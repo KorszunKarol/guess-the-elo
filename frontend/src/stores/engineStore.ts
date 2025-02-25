@@ -20,6 +20,7 @@ export const useEngineStore = create<EngineState>((set) => ({
     multiPV: 3,
     threads: 2,
     autoAnalysis: true,
+    continuous: true,
   },
   updateFen: (fen: string) => set({ currentFen: fen }),
   toggleEngine: (enabled?: boolean) =>

@@ -20,76 +20,24 @@ export const useStockfishAnalysis = () => {
     const [evaluation, setEvaluation] = useState<number>(0);
     const [bestLines, setBestLines] = useState<StockfishLine[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [analysisLogs, setAnalysisLogs] = useState<string[]>([]);
+    const [engineReady, setEngineReady] = useState(false);
+    const maxLogEntries = 10; // Keep only last 10 log entries
 
     const workerRef = useRef<Worker | null>(null);
-    const verificationComplete = useRef(false);
-    const verificationTimeout = useRef<NodeJS.Timeout>();
+    const positionChanged = useRef<boolean>(false);
+    const lastFen = useRef<string>(currentFen);
 
-    const verifyWASM = useCallback(async () => {
-        // Skip if already verified
-        if (verificationComplete.current) return;
-
-        // Clear any pending verification
-        if (verificationTimeout.current) {
-            clearTimeout(verificationTimeout.current);
-        }
-
-        try {
-            const basePath = process.env.NODE_ENV === 'development'
-                ? `${typeof window !== 'undefined' ? window.location.origin : ''}/wasm`
-                : '/_next/static/wasm';
-
-            const wasmPath = `${basePath}/stockfish-nnue-16-single.wasm`;
-            console.log('Verifying WASM at:', wasmPath);
-
-            const res = await fetch(wasmPath);
-            if (!res.ok) {
-                throw new Error(`Failed to fetch WASM: ${res.status} ${res.statusText}`);
-            }
-
-            console.log('WASM fetch status:', res.status);
-            console.log('WASM content type:', res.headers.get('content-type'));
-            const buffer = await res.arrayBuffer();
-            console.log('WASM size:', buffer.byteLength, 'bytes');
-
-            // Also verify NNUE file
-            const nnuePath = `${basePath}/nn-5af11540bbfe.nnue`;
-            console.log('Verifying NNUE at:', nnuePath);
-
-            const nnueRes = await fetch(nnuePath);
-            if (!nnueRes.ok) {
-                console.warn('NNUE file not found:', nnuePath);
-            } else {
-                console.log('NNUE fetch status:', nnueRes.status);
-                console.log('NNUE size:', (await nnueRes.arrayBuffer()).byteLength, 'bytes');
-            }
-
-            // Mark verification as complete only if successful
-            verificationComplete.current = true;
-        } catch (error) {
-            console.error('WASM verification failed:', error);
-            setError(error instanceof Error ? error.message : 'Failed to verify WASM');
-            // Reset verification flag on error
-            verificationComplete.current = false;
-        }
-    }, []); // Empty dependency array since we don't use any external values
-
-    // Run verification once on mount
-    useEffect(() => {
-        if (typeof window === 'undefined') return; // Skip on server-side
-
-        verificationTimeout.current = setTimeout(() => {
-            verifyWASM();
-        }, 100); // Small delay to ensure DOM is ready
-
-        return () => {
-            if (verificationTimeout.current) {
-                clearTimeout(verificationTimeout.current);
-            }
-        };
-    }, [verifyWASM]);
+    // Function to add a new log entry
+    const addLogEntry = useCallback((log: string) => {
+        setAnalysisLogs(prev => {
+            const newLogs = [...prev, log];
+            return newLogs.slice(-maxLogEntries); // Keep only last N entries
+        });
+    }, []);
 
     // Initialize worker
     useEffect(() => {
@@ -105,6 +53,27 @@ export const useStockfishAnalysis = () => {
                 const { type, data } = e.data;
 
                 switch (type) {
+                    case 'ready':
+                        setEngineReady(true);
+                        addLogEntry('Engine ready');
+                        break;
+
+                    case 'started':
+                        setIsAnalyzing(true);
+                        setIsPaused(false);
+                        addLogEntry('Analysis started');
+                        break;
+
+                    case 'paused':
+                        setIsPaused(true);
+                        addLogEntry('Analysis paused');
+                        break;
+
+                    case 'resumed':
+                        setIsPaused(false);
+                        addLogEntry('Analysis resumed');
+                        break;
+
                     case 'analysis':
                         setEvaluation(data.evaluation);
                         setBestLines(prev => {
@@ -125,18 +94,34 @@ export const useStockfishAnalysis = () => {
                                 };
                             }
 
+                            // Update progress based on depth
+                            const maxDepth = settings.depth;
+                            const currentDepth = data.line.depth;
+                            const depthProgress = Math.min((currentDepth / maxDepth) * 100, 99);
+                            setProgress(depthProgress);
+
                             return newLines.sort((a, b) => b.evaluation - a.evaluation);
                         });
                         break;
 
+                    case 'progress':
+                        if (data && data.depth) {
+                            setProgress(data.depth);
+                        }
+                        break;
+
                     case 'complete':
                         setIsAnalyzing(false);
+                        setIsPaused(false);
                         setProgress(100);
+                        addLogEntry('Analysis complete');
                         break;
 
                     case 'error':
                         setError(data.message);
                         setIsAnalyzing(false);
+                        setIsPaused(false);
+                        addLogEntry(`Error: ${data.message}`);
                         break;
                 }
             };
@@ -150,24 +135,35 @@ export const useStockfishAnalysis = () => {
             };
         } catch (err) {
             setError('Failed to initialize Stockfish worker');
+            addLogEntry('Worker initialization failed');
         }
-    }, []);
+    }, [addLogEntry, settings.depth]);
 
     const getEvaluationColor = (value: number): string => {
         if (Math.abs(value) < 0.5) return 'text-gray-300';
         return value > 0 ? 'text-blue-400' : 'text-red-400';
     };
 
-    const startAnalysis = () => {
+    const startAnalysis = useCallback(() => {
         if (!workerRef.current) {
             setError('Stockfish worker not initialized');
             return;
         }
 
+        if (!engineReady) {
+            addLogEntry('Engine not ready yet, waiting...');
+            return;
+        }
+
         setIsAnalyzing(true);
         setProgress(0);
-        setBestLines([]);
         setError(null);
+
+        // Only reset best lines if position changed
+        if (positionChanged.current) {
+            setBestLines([]);
+            positionChanged.current = false;
+        }
 
         workerRef.current.postMessage({
             type: 'start',
@@ -175,39 +171,128 @@ export const useStockfishAnalysis = () => {
             settings: {
                 depth: settings.depth,
                 multiPV: settings.multiPV,
-                threads: settings.threads
+                threads: settings.threads,
+                continuous: true // Enable continuous analysis mode
             }
         });
-    };
+    }, [currentFen, settings, engineReady, addLogEntry]);
 
-    const stopAnalysis = () => {
-        if (!workerRef.current) return;
+    const stopAnalysis = useCallback(() => {
+        if (!workerRef.current || !isAnalyzing) return;
 
         workerRef.current.postMessage({ type: 'stop' });
-        setIsAnalyzing(false);
-    };
+    }, [isAnalyzing]);
 
-    // Auto-start analysis when engine is enabled and the current FEN changes
+    const pauseAnalysis = useCallback(() => {
+        if (!workerRef.current || !isAnalyzing || isPaused) return;
+
+        workerRef.current.postMessage({ type: 'pause' });
+    }, [isAnalyzing, isPaused]);
+
+    const resumeAnalysis = useCallback(() => {
+        if (!workerRef.current || !isPaused) return;
+
+        workerRef.current.postMessage({
+            type: 'resume',
+            settings: {
+                depth: settings.depth,
+                multiPV: settings.multiPV,
+                threads: settings.threads,
+                continuous: true
+            }
+        });
+    }, [isPaused, settings]);
+
+    // Track position changes with debouncing to prevent rapid restarts
     useEffect(() => {
-        if (isEngineEnabled && settings.autoAnalysis && !isAnalyzing) {
+        // Skip if engine is not enabled or auto-analysis is off
+        if (!isEngineEnabled || !settings.autoAnalysis) return;
+
+        if (currentFen !== lastFen.current) {
+            positionChanged.current = true;
+            lastFen.current = currentFen;
+
+            // Use a more reliable approach with proper cleanup
+            let isCurrentEffect = true; // Flag to track if this effect instance is still current
+
+            const handlePositionChange = async () => {
+                // Only proceed if this effect is still the current one
+                if (!isCurrentEffect) return;
+
+                // If already analyzing, stop first
+                if (isAnalyzing && workerRef.current) {
+                    workerRef.current.postMessage({ type: 'stop' });
+
+                    // Wait for the stop to complete
+                    await new Promise(resolve => setTimeout(resolve, 200));
+
+                    // Check if this effect is still relevant
+                    if (!isCurrentEffect) return;
+
+                    // Reset state
+                    setBestLines([]);
+                }
+
+                // Start new analysis if conditions are still met
+                if (isEngineEnabled && settings.autoAnalysis && engineReady && workerRef.current && isCurrentEffect) {
+                    workerRef.current.postMessage({
+                        type: 'start',
+                        fen: currentFen,
+                        settings: {
+                            depth: settings.depth,
+                            multiPV: settings.multiPV,
+                            threads: settings.threads,
+                            continuous: settings.continuous
+                        }
+                    });
+
+                    // Update state
+                    setIsAnalyzing(true);
+                    setIsPaused(false);
+                    setProgress(0);
+                }
+            };
+
+            // Debounce position changes to prevent rapid restarts
+            const timerId = setTimeout(handlePositionChange, 300);
+
+            // Cleanup function
+            return () => {
+                isCurrentEffect = false;
+                clearTimeout(timerId);
+            };
+        }
+    }, [currentFen, isEngineEnabled, settings, isAnalyzing, engineReady]);
+
+    // Auto-start analysis when engine is first enabled
+    useEffect(() => {
+        // Only start analysis when engine is first enabled and not already analyzing
+        if (isEngineEnabled && settings.autoAnalysis && !isAnalyzing && !isPaused && engineReady) {
             startAnalysis();
         }
+
         // Stop analysis if engine is disabled
-        if (!isEngineEnabled && isAnalyzing) {
+        if (!isEngineEnabled && (isAnalyzing || isPaused)) {
             stopAnalysis();
         }
-    }, [currentFen, isEngineEnabled, settings.autoAnalysis, isAnalyzing]);
+    }, [isEngineEnabled, settings.autoAnalysis, isAnalyzing, isPaused, engineReady, startAnalysis, stopAnalysis]);
 
-    // Handle analysis progress
+    // Handle settings changes
     useEffect(() => {
-        if (!isAnalyzing) return;
-
-        const interval = setInterval(() => {
-            setProgress(prev => Math.min(prev + (100 / (settings.depth * 10)), 100));
-        }, 100);
-
-        return () => clearInterval(interval);
-    }, [isAnalyzing, settings.depth]);
+        // Only update settings during active analysis
+        if (isAnalyzing && engineReady && !isPaused && workerRef.current) {
+            // Update settings without restarting analysis
+            workerRef.current.postMessage({
+                type: 'update_settings',
+                settings: {
+                    depth: settings.depth,
+                    multiPV: settings.multiPV,
+                    threads: settings.threads,
+                    continuous: settings.continuous
+                }
+            });
+        }
+    }, [settings.depth, settings.multiPV, settings.threads, settings.continuous, isAnalyzing, engineReady, isPaused]);
 
     return {
         evaluation,
@@ -216,9 +301,14 @@ export const useStockfishAnalysis = () => {
         updateSettings,
         getEvaluationColor,
         isAnalyzing,
+        isPaused,
         progress,
         error,
         startAnalysis,
         stopAnalysis,
+        pauseAnalysis,
+        resumeAnalysis,
+        analysisLogs,
+        engineReady
     };
 };
