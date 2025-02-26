@@ -225,6 +225,25 @@ const initStockfish = async () => {
         self.postMessage({ type: 'ready' });
       }
 
+      // Handle "bestmove" messages when analysis is complete
+      if (message.startsWith('bestmove')) {
+        const formattedLog = formatStockfishLog(message);
+        if (formattedLog) {
+          console.log('[Stockfish]', formattedLog);
+        }
+
+        // Only handle completion in non-continuous mode
+        if (!currentSettings.continuous) {
+          if (!isPaused) {
+            // In depth-limited mode, this means we've reached target depth
+            isAnalyzing = false;
+            self.postMessage({ type: 'complete' });
+            self.postMessage({ type: 'progress', data: { depth: 100 } });
+          }
+        }
+        // In continuous mode, keep analyzing without sending complete
+      }
+
       // Process info messages with throttling for UI performance
       if (message.startsWith('info depth') && message.includes('score') && message.includes('pv')) {
         const now = Date.now();
@@ -237,7 +256,7 @@ const initStockfish = async () => {
         }
 
         // Only send updates to UI at throttled rate
-        if (shouldUpdate) {
+        if (shouldUpdate && isAnalyzing) {
           lastUpdateTime = now;
 
           // Parse Stockfish output and send back to main thread
@@ -246,6 +265,12 @@ const initStockfish = async () => {
           debugLog('Parsed Data', { evaluation, bestLine });
 
           if (evaluation && bestLine) {
+            // Update progress based on depth in non-continuous mode
+            if (!currentSettings.continuous) {
+              const progress = Math.min((bestLine.depth / currentSettings.depth) * 100, 99);
+              self.postMessage({ type: 'progress', data: { depth: progress } });
+            }
+
             self.postMessage({
               type: 'analysis',
               data: {
@@ -255,20 +280,6 @@ const initStockfish = async () => {
               }
             });
           }
-        }
-      }
-
-      // Handle "bestmove" messages when analysis is complete
-      if (message.startsWith('bestmove')) {
-        const formattedLog = formatStockfishLog(message);
-        if (formattedLog) {
-          console.log('[Stockfish]', formattedLog);
-        }
-
-        // In continuous mode, we don't want to stop analyzing
-        // We'll only mark as complete if we're not in continuous mode
-        if (!isPaused) {
-          self.postMessage({ type: 'progress', data: { depth: 100 } });
         }
       }
     };
@@ -327,13 +338,24 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
   isProcessingCommand = true;
 
   try {
+    // Helper function to ensure clean stop
+    const ensureEngineStopped = async () => {
+      if (stockfishEngine) {
+        stockfishEngine.postMessage('stop');
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    };
+
     switch (type) {
       case 'start':
+        // Always ensure clean stop before starting
+        await ensureEngineStopped();
+
         if (fen) {
           currentFen = fen;
         }
 
-        // Update engine settings
+        // Update engine settings and ensure state is set before starting
         if (settings) {
           currentSettings = {
             depth: settings.depth || currentSettings.depth,
@@ -345,78 +367,35 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
           stockfishEngine.postMessage(`setoption name MultiPV value ${currentSettings.multiPV}`);
         }
 
-        // First ensure any previous analysis is stopped
-        stockfishEngine.postMessage('stop');
-
-        // Small delay to ensure stop is processed
-        await new Promise(resolve => setTimeout(resolve, 50));
-
-        // Set position
-        stockfishEngine.postMessage(`position fen ${currentFen}`);
-
-        // Start analysis - use continuous mode if specified
-        if (currentSettings.continuous) {
-          stockfishEngine.postMessage('go infinite');
-        } else {
-          stockfishEngine.postMessage(`go depth ${currentSettings.depth}`);
-        }
-
+        // Set state before starting analysis
         isAnalyzing = true;
         isPaused = false;
-        lastUpdateTime = 0; // Reset throttling timer
+        lastUpdateTime = 0;
 
+        // Set position and start analysis
+        stockfishEngine.postMessage(`position fen ${currentFen}`);
+        stockfishEngine.postMessage(currentSettings.continuous ? 'go infinite' : `go depth ${currentSettings.depth}`);
+
+        // Notify UI that analysis is starting
         self.postMessage({ type: 'started' });
+        // Send initial progress
+        self.postMessage({ type: 'progress', data: { depth: 0 } });
         break;
 
       case 'stop':
         if (isAnalyzing) {
-          stockfishEngine.postMessage('stop');
-
-          // Wait for stop to be processed
-          await new Promise(resolve => setTimeout(resolve, 50));
-
+          await ensureEngineStopped();
           isAnalyzing = false;
           isPaused = false;
+          // Send complete and reset progress
           self.postMessage({ type: 'complete' });
-        }
-        break;
-
-      case 'pause':
-        if (isAnalyzing && !isPaused) {
-          stockfishEngine.postMessage('stop');
-
-          // Wait for stop to be processed
-          await new Promise(resolve => setTimeout(resolve, 50));
-
-          isPaused = true;
-          self.postMessage({ type: 'paused' });
-        }
-        break;
-
-      case 'resume':
-        if (isPaused) {
-          // Resume analysis
-          stockfishEngine.postMessage(`position fen ${currentFen}`);
-
-          // Small delay to ensure position is set
-          await new Promise(resolve => setTimeout(resolve, 50));
-
-          // Start analysis - use continuous mode if specified
-          if (currentSettings.continuous) {
-            stockfishEngine.postMessage('go infinite');
-          } else {
-            stockfishEngine.postMessage(`go depth ${currentSettings.depth}`);
-          }
-
-          isPaused = false;
-          self.postMessage({ type: 'resumed' });
+          self.postMessage({ type: 'progress', data: { depth: 0 } });
         }
         break;
 
       case 'update_settings':
         if (settings) {
           const oldSettings = { ...currentSettings };
-
           currentSettings = {
             depth: settings.depth,
             multiPV: settings.multiPV,
@@ -434,26 +413,15 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
           }
 
           // If analyzing and continuous setting changed, restart analysis
-          if (isAnalyzing && !isPaused && oldSettings.continuous !== currentSettings.continuous) {
-            stockfishEngine.postMessage('stop');
-
-            // Wait for stop to be processed
-            await new Promise(resolve => setTimeout(resolve, 50));
-
-            // Restart with new settings
+          if (isAnalyzing && oldSettings.continuous !== currentSettings.continuous) {
+            await ensureEngineStopped();
             stockfishEngine.postMessage(`position fen ${currentFen}`);
-
-            if (currentSettings.continuous) {
-              stockfishEngine.postMessage('go infinite');
-            } else {
-              stockfishEngine.postMessage(`go depth ${currentSettings.depth}`);
-            }
+            stockfishEngine.postMessage(currentSettings.continuous ? 'go infinite' : `go depth ${currentSettings.depth}`);
           }
         }
         break;
     }
   } finally {
-    // Always release the processing lock when done
     isProcessingCommand = false;
   }
 };

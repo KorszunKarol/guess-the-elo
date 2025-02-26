@@ -79,7 +79,7 @@ export const useStockfishAnalysis = () => {
                         setBestLines(prev => {
                             const newLines = [...prev];
                             const lineIndex = newLines.findIndex(
-                                line => line.move === data.line.move
+                                line => line.multipv === data.line.multipv
                             );
 
                             if (lineIndex === -1) {
@@ -155,9 +155,11 @@ export const useStockfishAnalysis = () => {
             return;
         }
 
-        setIsAnalyzing(true);
-        setProgress(0);
+        // Reset states before starting
         setError(null);
+        setProgress(0);
+        setIsAnalyzing(true);
+        setIsPaused(false);
 
         // Only reset best lines if position changed
         if (positionChanged.current) {
@@ -165,6 +167,7 @@ export const useStockfishAnalysis = () => {
             positionChanged.current = false;
         }
 
+        // Send start command to worker
         workerRef.current.postMessage({
             type: 'start',
             fen: currentFen,
@@ -172,7 +175,7 @@ export const useStockfishAnalysis = () => {
                 depth: settings.depth,
                 multiPV: settings.multiPV,
                 threads: settings.threads,
-                continuous: true // Enable continuous analysis mode
+                continuous: settings.continuous
             }
         });
     }, [currentFen, settings, engineReady, addLogEntry]);
@@ -181,6 +184,9 @@ export const useStockfishAnalysis = () => {
         if (!workerRef.current || !isAnalyzing) return;
 
         workerRef.current.postMessage({ type: 'stop' });
+        setIsAnalyzing(false);
+        setIsPaused(false);
+        setProgress(0); // Reset progress when stopping
     }, [isAnalyzing]);
 
     const pauseAnalysis = useCallback(() => {
@@ -203,10 +209,22 @@ export const useStockfishAnalysis = () => {
         });
     }, [isPaused, settings]);
 
+    // Simplified toggle function that handles state properly
+    const toggleAnalysis = useCallback(() => {
+        if (isAnalyzing) {
+            stopAnalysis();
+        } else {
+            startAnalysis();
+        }
+    }, [isAnalyzing, startAnalysis, stopAnalysis]);
+
     // Track position changes with debouncing to prevent rapid restarts
     useEffect(() => {
         // Skip if engine is not enabled or auto-analysis is off
         if (!isEngineEnabled || !settings.autoAnalysis) return;
+
+        // Skip if user manually stopped analysis
+        if (!isAnalyzing && !positionChanged.current) return;
 
         if (currentFen !== lastFen.current) {
             positionChanged.current = true;
@@ -233,8 +251,8 @@ export const useStockfishAnalysis = () => {
                     setBestLines([]);
                 }
 
-                // Start new analysis if conditions are still met
-                if (isEngineEnabled && settings.autoAnalysis && engineReady && workerRef.current && isCurrentEffect) {
+                // Only start new analysis if auto-analysis is enabled and we were previously analyzing
+                if (isEngineEnabled && settings.autoAnalysis && engineReady && workerRef.current && isCurrentEffect && isAnalyzing) {
                     workerRef.current.postMessage({
                         type: 'start',
                         fen: currentFen,
@@ -246,9 +264,6 @@ export const useStockfishAnalysis = () => {
                         }
                     });
 
-                    // Update state
-                    setIsAnalyzing(true);
-                    setIsPaused(false);
                     setProgress(0);
                 }
             };
@@ -294,6 +309,14 @@ export const useStockfishAnalysis = () => {
         }
     }, [settings.depth, settings.multiPV, settings.threads, settings.continuous, isAnalyzing, engineReady, isPaused]);
 
+    // Initialize state on mount
+    useEffect(() => {
+        setIsAnalyzing(false);
+        setIsPaused(false);
+        setProgress(0);
+        setBestLines([]);
+    }, []);
+
     return {
         evaluation,
         bestLines,
@@ -308,6 +331,7 @@ export const useStockfishAnalysis = () => {
         stopAnalysis,
         pauseAnalysis,
         resumeAnalysis,
+        toggleAnalysis,
         analysisLogs,
         engineReady
     };
