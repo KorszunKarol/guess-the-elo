@@ -4,6 +4,7 @@ import { Settings, Play, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useEngineStore } from '@/stores/engineStore';
 
 interface EvaluationHeaderProps {
     isAnalyzing: boolean;
@@ -20,6 +21,18 @@ export const EvaluationHeader = ({
     onToggleAnalysis,
     onToggleSettings,
 }: EvaluationHeaderProps) => {
+    const toggleEngine = useEngineStore(state => state.toggleEngine);
+
+    const handleToggleAnalysis = () => {
+        console.log('Play/Stop button clicked', { isAnalyzing, engineReady });
+
+        // Toggle engine state in the store - this is critical to prevent auto-stopping
+        toggleEngine(!isAnalyzing);
+
+        // Then toggle the analysis
+        onToggleAnalysis();
+    };
+
     return (
         <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
@@ -30,7 +43,7 @@ export const EvaluationHeader = ({
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={onToggleAnalysis}
+                    onClick={handleToggleAnalysis}
                     className={cn(
                         "h-8 w-8 hover:text-white relative",
                         !engineReady ? "text-gray-600" :

@@ -12,6 +12,7 @@ interface AnalysisStatsProps {
     nodesPerSecond: string;
     progress: number;
     evaluation: number;
+    isInfinite?: boolean;
 }
 
 export const AnalysisStats = ({
@@ -23,6 +24,7 @@ export const AnalysisStats = ({
     nodesPerSecond,
     progress,
     evaluation,
+    isInfinite = false,
 }: AnalysisStatsProps) => {
     const getEvaluationPercentage = (evalScore: number) => {
         const clampedScore = Math.min(Math.max(evalScore, -8), 8);
@@ -53,7 +55,7 @@ export const AnalysisStats = ({
                         "text-xs bg-gray-800/50 px-2 py-0.5 rounded-full",
                         isAnalyzing ? "text-gray-300" : "text-gray-500"
                     )}>
-                        Depth: {maxDepthReached}/{targetDepth}
+                        Depth: {maxDepthReached}{isInfinite ? "" : `/${targetDepth}`}
                     </span>
                 </div>
 
@@ -73,7 +75,7 @@ export const AnalysisStats = ({
             {/* Progress bar with evaluation marker */}
             <div className="space-y-1">
                 <Progress
-                    value={progress}
+                    value={isInfinite ? (maxDepthReached > 0 ? Math.min(maxDepthReached * 3, 100) : 0) : progress}
                     className={cn(
                         "h-1.5 rounded-full",
                         isAnalyzing && !isPaused ? "opacity-100" : "opacity-70"

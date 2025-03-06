@@ -12,23 +12,30 @@ interface EngineState {
 
 const DEFAULT_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
+const DEFAULT_SETTINGS = {
+  depth: 20,
+  multiPV: 3,
+  threads: 2,
+  isInfinite: false
+};
+
+console.log('Initializing engine store with settings:', DEFAULT_SETTINGS);
+
 export const useEngineStore = create<EngineState>((set) => ({
   currentFen: DEFAULT_FEN,
   isEngineEnabled: false,
-  settings: {
-    depth: 20,
-    multiPV: 3,
-    threads: 2,
-    autoAnalysis: true,
-    continuous: true,
-  },
+  settings: DEFAULT_SETTINGS,
   updateFen: (fen: string) => set({ currentFen: fen }),
-  toggleEngine: (enabled?: boolean) =>
+  toggleEngine: (enabled?: boolean) => {
+    console.log('Toggling engine:', enabled);
     set((state) => ({
       isEngineEnabled: enabled !== undefined ? enabled : !state.isEngineEnabled
-    })),
-  updateSettings: (newSettings: Partial<EngineSettings>) =>
+    }));
+  },
+  updateSettings: (newSettings: Partial<EngineSettings>) => {
+    console.log('Updating engine settings:', newSettings);
     set((state) => ({
       settings: { ...state.settings, ...newSettings }
-    })),
+    }));
+  },
 }));

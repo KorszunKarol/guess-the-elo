@@ -95,6 +95,7 @@ export default function StockfishEvaluation({ className }: StockfishEvaluationPr
                         nodesPerSecond={nodesPerSecond}
                         progress={progress}
                         evaluation={evaluation}
+                        isInfinite={settings.isInfinite}
                     />
                 )}
 

@@ -13,8 +13,7 @@ export interface EngineSettings {
     depth: number;
     multiPV: number;
     threads: number;
-    autoAnalysis: boolean;
-    continuous: boolean;
+    isInfinite: boolean;
 }
 
 export interface StockfishWorkerMessage {

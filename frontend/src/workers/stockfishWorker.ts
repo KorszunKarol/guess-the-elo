@@ -14,7 +14,7 @@ interface StockfishMessage {
     depth: number;
     multiPV: number;
     threads: number;
-    continuous?: boolean;
+    isInfinite?: boolean;
   };
 }
 
@@ -27,7 +27,7 @@ let currentSettings = {
   depth: 20,
   multiPV: 3,
   threads: 2,
-  continuous: true
+  isInfinite: false
 };
 const UPDATE_THROTTLE_MS = 100; // Throttle updates to 10 per second max
 
@@ -227,27 +227,37 @@ const initStockfish = async () => {
 
       // Handle "bestmove" messages when analysis is complete
       if (message.startsWith('bestmove')) {
+        console.log('Received bestmove message in infinite mode:', currentSettings.isInfinite);
         const formattedLog = formatStockfishLog(message);
         if (formattedLog) {
           console.log('[Stockfish]', formattedLog);
         }
 
-        // Only handle completion in non-continuous mode
-        if (!currentSettings.continuous) {
+        // Only handle completion in non-infinite mode
+        if (!currentSettings.isInfinite) {
           if (!isPaused) {
             // In depth-limited mode, this means we've reached target depth
+            console.log('Analysis complete in depth-limited mode, stopping');
             isAnalyzing = false;
             self.postMessage({ type: 'complete' });
             self.postMessage({ type: 'progress', data: { depth: 100 } });
           }
+        } else {
+          console.log('Received bestmove in infinite mode - restarting analysis');
+          // In infinite mode, we need to restart the analysis
+          restartInfiniteAnalysis();
         }
-        // In continuous mode, keep analyzing without sending complete
       }
 
       // Process info messages with throttling for UI performance
       if (message.startsWith('info depth') && message.includes('score') && message.includes('pv')) {
         const now = Date.now();
         const shouldUpdate = now - lastUpdateTime >= UPDATE_THROTTLE_MS;
+
+        // Extract depth information for debugging
+        const depthMatch = message.match(/depth (\d+)/);
+        const currentDepth = depthMatch ? parseInt(depthMatch[1]) : 0;
+        console.log(`Processing info at depth ${currentDepth}, infinite mode: ${currentSettings.isInfinite}`);
 
         // Always process the message for logging
         const formattedLog = formatStockfishLog(message);
@@ -265,9 +275,10 @@ const initStockfish = async () => {
           debugLog('Parsed Data', { evaluation, bestLine });
 
           if (evaluation && bestLine) {
-            // Update progress based on depth in non-continuous mode
-            if (!currentSettings.continuous) {
+            // Update progress based on depth in non-infinite mode
+            if (!currentSettings.isInfinite) {
               const progress = Math.min((bestLine.depth / currentSettings.depth) * 100, 99);
+              console.log(`Depth progress: ${bestLine.depth}/${currentSettings.depth} (${progress.toFixed(1)}%)`);
               self.postMessage({ type: 'progress', data: { depth: progress } });
             }
 
@@ -297,7 +308,20 @@ const initStockfish = async () => {
 // Initialize Stockfish engine
 let stockfishEngine: Worker | null = null;
 
+// Helper function to restart analysis in infinite mode
+const restartInfiniteAnalysis = () => {
+  console.log('Restarting infinite analysis');
+  if (stockfishEngine && isAnalyzing && !isPaused) {
+    // Set position and restart analysis
+    stockfishEngine.postMessage(`position fen ${currentFen}`);
+    stockfishEngine.postMessage('go infinite');
+    return true;
+  }
+  return false;
+};
+
 // Initialize engine on worker start
+console.log('Starting Stockfish engine initialization');
 initStockfish()
   .then(engine => {
     stockfishEngine = engine;
@@ -313,7 +337,10 @@ initStockfish()
 
 // Handle messages from main thread
 self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
+  console.log('Worker received message', e.data);
+
   if (!stockfishEngine) {
+    console.error('Stockfish engine not initialized');
     self.postMessage({
       type: 'error',
       data: { message: 'Stockfish engine not initialized' }
@@ -325,7 +352,7 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
 
   // Prevent race conditions by ensuring commands are processed sequentially
   if (isProcessingCommand && type !== 'update_settings') {
-    debugLog('Command Queuing', `Waiting for previous command to complete: ${type}`);
+    console.warn('Command Queuing', `Waiting for previous command to complete: ${type}`);
     // Wait a bit and then retry by posting the same message back to self
     setTimeout(() => {
       self.postMessage({ type: 'debug', data: { message: `Requeuing command: ${type}` } });
@@ -340,14 +367,17 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
   try {
     // Helper function to ensure clean stop
     const ensureEngineStopped = async () => {
+      console.log('Ensuring engine is stopped');
       if (stockfishEngine) {
         stockfishEngine.postMessage('stop');
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Wait for the engine to respond
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
     };
 
     switch (type) {
       case 'start':
+        console.log('Processing start command', { fen, settings });
         // Always ensure clean stop before starting
         await ensureEngineStopped();
 
@@ -357,12 +387,20 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
 
         // Update engine settings and ensure state is set before starting
         if (settings) {
+          const oldInfinite = currentSettings.isInfinite;
           currentSettings = {
             depth: settings.depth || currentSettings.depth,
             multiPV: settings.multiPV || currentSettings.multiPV,
             threads: settings.threads || currentSettings.threads,
-            continuous: settings.continuous ?? currentSettings.continuous
+            isInfinite: settings.isInfinite ?? currentSettings.isInfinite
           };
+          console.log('Updated engine settings', {
+            oldInfinite,
+            newInfinite: currentSettings.isInfinite,
+            depth: currentSettings.depth,
+            multiPV: currentSettings.multiPV,
+            threads: currentSettings.threads
+          });
           stockfishEngine.postMessage(`setoption name Threads value ${currentSettings.threads}`);
           stockfishEngine.postMessage(`setoption name MultiPV value ${currentSettings.multiPV}`);
         }
@@ -372,22 +410,37 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
         isPaused = false;
         lastUpdateTime = 0;
 
+        console.log('Setting position and starting analysis', {
+          fen: currentFen,
+          isInfinite: currentSettings.isInfinite,
+          depth: currentSettings.depth,
+          command: currentSettings.isInfinite ? 'go infinite' : `go depth ${currentSettings.depth}`
+        });
+
         // Set position and start analysis
         stockfishEngine.postMessage(`position fen ${currentFen}`);
-        stockfishEngine.postMessage(currentSettings.continuous ? 'go infinite' : `go depth ${currentSettings.depth}`);
+
+        if (currentSettings.isInfinite) {
+          stockfishEngine.postMessage('go infinite');
+        } else {
+          stockfishEngine.postMessage(`go depth ${currentSettings.depth}`);
+        }
 
         // Notify UI that analysis is starting
+        console.log('Sending started message to UI');
         self.postMessage({ type: 'started' });
         // Send initial progress
         self.postMessage({ type: 'progress', data: { depth: 0 } });
         break;
 
       case 'stop':
+        console.log('Processing stop command');
         if (isAnalyzing) {
           await ensureEngineStopped();
           isAnalyzing = false;
           isPaused = false;
           // Send complete and reset progress
+          console.log('Sending complete message to UI');
           self.postMessage({ type: 'complete' });
           self.postMessage({ type: 'progress', data: { depth: 0 } });
         }
@@ -397,10 +450,10 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
         if (settings) {
           const oldSettings = { ...currentSettings };
           currentSettings = {
-            depth: settings.depth,
-            multiPV: settings.multiPV,
-            threads: settings.threads,
-            continuous: settings.continuous ?? true
+            depth: settings.depth !== undefined ? settings.depth : currentSettings.depth,
+            multiPV: settings.multiPV !== undefined ? settings.multiPV : currentSettings.multiPV,
+            threads: settings.threads !== undefined ? settings.threads : currentSettings.threads,
+            isInfinite: settings.isInfinite !== undefined ? settings.isInfinite : currentSettings.isInfinite
           };
 
           // Only update engine settings if they've changed
@@ -412,11 +465,15 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
             stockfishEngine.postMessage(`setoption name MultiPV value ${currentSettings.multiPV}`);
           }
 
-          // If analyzing and continuous setting changed, restart analysis
-          if (isAnalyzing && oldSettings.continuous !== currentSettings.continuous) {
+          // If analyzing and infinite setting changed, restart analysis
+          if (isAnalyzing && oldSettings.isInfinite !== currentSettings.isInfinite) {
             await ensureEngineStopped();
             stockfishEngine.postMessage(`position fen ${currentFen}`);
-            stockfishEngine.postMessage(currentSettings.continuous ? 'go infinite' : `go depth ${currentSettings.depth}`);
+            if (currentSettings.isInfinite) {
+              stockfishEngine.postMessage('go infinite');
+            } else {
+              stockfishEngine.postMessage(`go depth ${currentSettings.depth}`);
+            }
           }
         }
         break;

@@ -28,7 +28,6 @@ export const useStockfishAnalysis = () => {
     const maxLogEntries = 10; // Keep only last 10 log entries
 
     const workerRef = useRef<Worker | null>(null);
-    const positionChanged = useRef<boolean>(false);
     const lastFen = useRef<string>(currentFen);
 
     // Function to add a new log entry
@@ -43,33 +42,42 @@ export const useStockfishAnalysis = () => {
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
+        console.log('Initializing Stockfish worker');
+
         try {
             workerRef.current = new Worker(
                 new URL('@/workers/stockfishWorker.ts', import.meta.url)
             );
 
+            console.log('Worker created successfully');
+
             // Set up message handler
             workerRef.current.onmessage = (e: MessageEvent) => {
                 const { type, data } = e.data;
+                console.log('Worker message received', { type, data });
 
                 switch (type) {
                     case 'ready':
+                        console.log('Engine ready message received');
                         setEngineReady(true);
                         addLogEntry('Engine ready');
                         break;
 
                     case 'started':
+                        console.log('Analysis started message received');
                         setIsAnalyzing(true);
                         setIsPaused(false);
                         addLogEntry('Analysis started');
                         break;
 
                     case 'paused':
+                        console.log('Analysis paused message received');
                         setIsPaused(true);
                         addLogEntry('Analysis paused');
                         break;
 
                     case 'resumed':
+                        console.log('Analysis resumed message received');
                         setIsPaused(false);
                         addLogEntry('Analysis resumed');
                         break;
@@ -95,10 +103,15 @@ export const useStockfishAnalysis = () => {
                             }
 
                             // Update progress based on depth
-                            const maxDepth = settings.depth;
-                            const currentDepth = data.line.depth;
-                            const depthProgress = Math.min((currentDepth / maxDepth) * 100, 99);
-                            setProgress(depthProgress);
+                            if (!settings.isInfinite) {
+                                const maxDepth = settings.depth;
+                                const currentDepth = data.line.depth;
+                                const depthProgress = Math.min((currentDepth / maxDepth) * 100, 99);
+                                setProgress(depthProgress);
+                            } else {
+                                // In infinite mode, just show the current depth as progress
+                                setProgress(data.line.depth);
+                            }
 
                             return newLines.sort((a, b) => b.evaluation - a.evaluation);
                         });
@@ -145,12 +158,16 @@ export const useStockfishAnalysis = () => {
     };
 
     const startAnalysis = useCallback(() => {
+        console.log('startAnalysis called', { workerRef: !!workerRef.current, engineReady, currentFen });
+
         if (!workerRef.current) {
+            console.error('Stockfish worker not initialized');
             setError('Stockfish worker not initialized');
             return;
         }
 
         if (!engineReady) {
+            console.warn('Engine not ready yet, waiting...');
             addLogEntry('Engine not ready yet, waiting...');
             return;
         }
@@ -160,12 +177,18 @@ export const useStockfishAnalysis = () => {
         setProgress(0);
         setIsAnalyzing(true);
         setIsPaused(false);
+        setBestLines([]);
+        lastFen.current = currentFen;
 
-        // Only reset best lines if position changed
-        if (positionChanged.current) {
-            setBestLines([]);
-            positionChanged.current = false;
-        }
+        console.log('Sending start command to worker', {
+            fen: currentFen,
+            settings: {
+                depth: settings.depth,
+                multiPV: settings.multiPV,
+                threads: settings.threads,
+                isInfinite: settings.isInfinite
+            }
+        });
 
         // Send start command to worker
         workerRef.current.postMessage({
@@ -175,122 +198,37 @@ export const useStockfishAnalysis = () => {
                 depth: settings.depth,
                 multiPV: settings.multiPV,
                 threads: settings.threads,
-                continuous: settings.continuous
+                isInfinite: settings.isInfinite
             }
         });
     }, [currentFen, settings, engineReady, addLogEntry]);
 
     const stopAnalysis = useCallback(() => {
-        if (!workerRef.current || !isAnalyzing) return;
+        console.log('stopAnalysis called', { workerRef: !!workerRef.current, isAnalyzing });
 
+        if (!workerRef.current || !isAnalyzing) {
+            console.warn('Cannot stop analysis: worker not initialized or not analyzing');
+            return;
+        }
+
+        console.log('Sending stop command to worker');
         workerRef.current.postMessage({ type: 'stop' });
         setIsAnalyzing(false);
         setIsPaused(false);
         setProgress(0); // Reset progress when stopping
     }, [isAnalyzing]);
 
-    const pauseAnalysis = useCallback(() => {
-        if (!workerRef.current || !isAnalyzing || isPaused) return;
-
-        workerRef.current.postMessage({ type: 'pause' });
-    }, [isAnalyzing, isPaused]);
-
-    const resumeAnalysis = useCallback(() => {
-        if (!workerRef.current || !isPaused) return;
-
-        workerRef.current.postMessage({
-            type: 'resume',
-            settings: {
-                depth: settings.depth,
-                multiPV: settings.multiPV,
-                threads: settings.threads,
-                continuous: true
-            }
-        });
-    }, [isPaused, settings]);
-
     // Simplified toggle function that handles state properly
     const toggleAnalysis = useCallback(() => {
+        console.log('Toggle Analysis called', { isAnalyzing, engineReady, isEngineEnabled });
         if (isAnalyzing) {
+            console.log('Stopping analysis');
             stopAnalysis();
         } else {
+            console.log('Starting analysis');
             startAnalysis();
         }
     }, [isAnalyzing, startAnalysis, stopAnalysis]);
-
-    // Track position changes with debouncing to prevent rapid restarts
-    useEffect(() => {
-        // Skip if engine is not enabled or auto-analysis is off
-        if (!isEngineEnabled || !settings.autoAnalysis) return;
-
-        // Skip if user manually stopped analysis
-        if (!isAnalyzing && !positionChanged.current) return;
-
-        if (currentFen !== lastFen.current) {
-            positionChanged.current = true;
-            lastFen.current = currentFen;
-
-            // Use a more reliable approach with proper cleanup
-            let isCurrentEffect = true; // Flag to track if this effect instance is still current
-
-            const handlePositionChange = async () => {
-                // Only proceed if this effect is still the current one
-                if (!isCurrentEffect) return;
-
-                // If already analyzing, stop first
-                if (isAnalyzing && workerRef.current) {
-                    workerRef.current.postMessage({ type: 'stop' });
-
-                    // Wait for the stop to complete
-                    await new Promise(resolve => setTimeout(resolve, 200));
-
-                    // Check if this effect is still relevant
-                    if (!isCurrentEffect) return;
-
-                    // Reset state
-                    setBestLines([]);
-                }
-
-                // Only start new analysis if auto-analysis is enabled and we were previously analyzing
-                if (isEngineEnabled && settings.autoAnalysis && engineReady && workerRef.current && isCurrentEffect && isAnalyzing) {
-                    workerRef.current.postMessage({
-                        type: 'start',
-                        fen: currentFen,
-                        settings: {
-                            depth: settings.depth,
-                            multiPV: settings.multiPV,
-                            threads: settings.threads,
-                            continuous: settings.continuous
-                        }
-                    });
-
-                    setProgress(0);
-                }
-            };
-
-            // Debounce position changes to prevent rapid restarts
-            const timerId = setTimeout(handlePositionChange, 300);
-
-            // Cleanup function
-            return () => {
-                isCurrentEffect = false;
-                clearTimeout(timerId);
-            };
-        }
-    }, [currentFen, isEngineEnabled, settings, isAnalyzing, engineReady]);
-
-    // Auto-start analysis when engine is first enabled
-    useEffect(() => {
-        // Only start analysis when engine is first enabled and not already analyzing
-        if (isEngineEnabled && settings.autoAnalysis && !isAnalyzing && !isPaused && engineReady) {
-            startAnalysis();
-        }
-
-        // Stop analysis if engine is disabled
-        if (!isEngineEnabled && (isAnalyzing || isPaused)) {
-            stopAnalysis();
-        }
-    }, [isEngineEnabled, settings.autoAnalysis, isAnalyzing, isPaused, engineReady, startAnalysis, stopAnalysis]);
 
     // Handle settings changes
     useEffect(() => {
@@ -303,11 +241,11 @@ export const useStockfishAnalysis = () => {
                     depth: settings.depth,
                     multiPV: settings.multiPV,
                     threads: settings.threads,
-                    continuous: settings.continuous
+                    isInfinite: settings.isInfinite
                 }
             });
         }
-    }, [settings.depth, settings.multiPV, settings.threads, settings.continuous, isAnalyzing, engineReady, isPaused]);
+    }, [settings.depth, settings.multiPV, settings.threads, settings.isInfinite, isAnalyzing, engineReady, isPaused]);
 
     // Initialize state on mount
     useEffect(() => {
@@ -329,8 +267,6 @@ export const useStockfishAnalysis = () => {
         error,
         startAnalysis,
         stopAnalysis,
-        pauseAnalysis,
-        resumeAnalysis,
         toggleAnalysis,
         analysisLogs,
         engineReady
