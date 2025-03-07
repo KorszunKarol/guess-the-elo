@@ -14,6 +14,9 @@ export const EvaluationLines = ({
     displayedLines,
     getEvaluationColor,
 }: EvaluationLinesProps) => {
+    // Debug flag - set to false to disable debug logging
+    const DEBUG = false;
+
     // Get the main evaluation from the first line
     const mainEvaluation = useMemo(() => {
         if (displayedLines.length === 0) return null;
@@ -24,12 +27,23 @@ export const EvaluationLines = ({
         };
     }, [displayedLines]);
 
+    // Log the number of lines being displayed for debugging
+    if (DEBUG) {
+        console.log('[DEBUG] EvaluationLines - IMPORTANT - displayedLines:', displayedLines.length,
+            displayedLines.map(line => ({
+                multipv: line.multipv,
+                move: line.move,
+                eval: line.evaluationText
+            }))
+        );
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex justify-center items-center">
                 <div
                     className={cn(
-                        'text-3xl font-bold flex items-center justify-center',
+                        'text-3xl font-bold flex items-center justify-center transition-colors duration-300',
                         getEvaluationColor(mainEvaluation?.score || 0)
                     )}
                 >
@@ -49,19 +63,26 @@ export const EvaluationLines = ({
                 </div>
             </div>
 
-            {/* Only show lines if we have any */}
-            {displayedLines.length > 0 && (
-                <div className="space-y-2">
-                    {displayedLines.map((line, i) => (
+            {/* Lines display with smooth transitions */}
+            <div className="space-y-2">
+                {displayedLines.map((line, index) => (
+                    <div
+                        key={`line-${index}-${line.multipv}`}
+                        className="transition-all duration-300 ease-in-out"
+                        style={{
+                            opacity: 1,
+                            transform: 'translateY(0)',
+                            animation: 'fadeIn 0.3s ease-in-out'
+                        }}
+                    >
                         <EvaluationItem
-                            key={i}
                             line={line}
                             getEvaluationColor={getEvaluationColor}
-                            onSelect={() => console.log('Selected line:', line)}
+                            isMainLine={index === 0}
                         />
-                    ))}
-                </div>
-            )}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };

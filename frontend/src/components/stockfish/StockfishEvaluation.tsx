@@ -15,6 +15,9 @@ interface StockfishEvaluationProps {
 }
 
 export default function StockfishEvaluation({ className }: StockfishEvaluationProps) {
+    // Debug flag - set to false to disable debug logging
+    const DEBUG = false;
+
     const [showSettings, setShowSettings] = useState(false);
     const [showLogs, setShowLogs] = useState(false);
 
@@ -34,8 +37,35 @@ export default function StockfishEvaluation({ className }: StockfishEvaluationPr
     } = useStockfishAnalysis();
 
     const displayedLines = useMemo(() => {
-        return bestLines.slice(0, settings.multiPV);
-    }, [bestLines, settings.multiPV]);
+        // Only log if debug is enabled
+        if (DEBUG) {
+            console.log('[DEBUG][IMPORTANT] StockfishEvaluation - bestLines:', bestLines.length, 'multiPV:', settings.multiPV);
+            console.log('[DEBUG][IMPORTANT] StockfishEvaluation - bestLines details:',
+                bestLines.map(line => ({
+                    multipv: line.multipv,
+                    depth: line.depth,
+                    move: line.move,
+                    eval: line.evaluationText
+                }))
+            );
+        }
+
+        const lines = bestLines.slice(0, settings.multiPV);
+
+        if (DEBUG) {
+            console.log('[DEBUG][IMPORTANT] StockfishEvaluation - displayedLines after slice:', lines.length);
+            console.log('[DEBUG][IMPORTANT] StockfishEvaluation - displayedLines details:',
+                lines.map(line => ({
+                    multipv: line.multipv,
+                    depth: line.depth,
+                    move: line.move,
+                    eval: line.evaluationText
+                }))
+            );
+        }
+
+        return lines;
+    }, [bestLines, settings.multiPV, DEBUG]);
 
     // Get the highest depth reached
     const maxDepthReached = useMemo(() => {
@@ -118,10 +148,24 @@ export default function StockfishEvaluation({ className }: StockfishEvaluationPr
                     </div>
                 )}
 
-                <EvaluationLines
-                    displayedLines={displayedLines}
-                    getEvaluationColor={getEvaluationColor}
-                />
+                <div className="space-y-4">
+                    {!isAnalyzing && progress === 0 && !error ? (
+                        <div className="text-center py-6 text-gray-500">
+                            <p>Click the play button to start analysis</p>
+                        </div>
+                    ) : displayedLines.length > 0 ? (
+                        <div className="transition-all duration-300 ease-in-out">
+                            <EvaluationLines
+                                displayedLines={displayedLines}
+                                getEvaluationColor={getEvaluationColor}
+                            />
+                        </div>
+                    ) : (
+                        <div className="text-center py-6 text-gray-500">
+                            <p>Waiting for analysis results...</p>
+                        </div>
+                    )}
+                </div>
             </CardContent>
         </Card>
     );

@@ -50,25 +50,12 @@ export const AnalysisStats = ({
                             : (progress > 0 ? "Complete" : "Idle")}
                     </span>
 
-                    {/* Show depth info */}
                     <span className={cn(
-                        "text-xs bg-gray-800/50 px-2 py-0.5 rounded-full",
-                        isAnalyzing ? "text-gray-300" : "text-gray-500"
+                        "px-2 py-0.5 rounded-full text-xs",
+                        isAnalyzing ? "bg-gray-800/70 text-gray-300" : "bg-gray-800/50 text-gray-400"
                     )}>
                         Depth: {maxDepthReached}{isInfinite ? "" : `/${targetDepth}`}
                     </span>
-                </div>
-
-                {/* Show nodes info */}
-                <div className="text-xs text-gray-400">
-                    <span className="bg-gray-800/50 px-2 py-0.5 rounded-full">
-                        {totalNodes.toLocaleString()} nodes
-                    </span>
-                    {isAnalyzing && !isPaused && (
-                        <span className="ml-1 text-green-400">
-                            ({nodesPerSecond}/s)
-                        </span>
-                    )}
                 </div>
             </div>
 
@@ -81,11 +68,6 @@ export const AnalysisStats = ({
                         isAnalyzing && !isPaused ? "opacity-100" : "opacity-70"
                     )}
                 />
-                <div className="w-full flex justify-between text-[10px] text-gray-500">
-                    <span>-8.0</span>
-                    <span className="text-blue-400">0.0</span>
-                    <span>+8.0</span>
-                </div>
                 <div className="relative w-full h-[2px] bg-gray-800">
                     <div
                         className={cn(

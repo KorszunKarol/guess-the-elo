@@ -11,6 +11,9 @@ const selectSettings = (state: any) => state.settings;
 const selectUpdateSettings = (state: any) => state.updateSettings;
 
 export const useStockfishAnalysis = () => {
+    // Debug flag - set to false to disable debug logging
+    const DEBUG = false;
+
     // Use individual selectors to minimize re-renders
     const currentFen = useEngineStore(selectCurrentFen);
     const isEngineEnabled = useEngineStore(selectIsEngineEnabled);
@@ -38,6 +41,20 @@ export const useStockfishAnalysis = () => {
         });
     }, []);
 
+    // Debug function to log bestLines state - only used when DEBUG is true
+    const logBestLines = useCallback((lines: StockfishLine[], source: string) => {
+        if (!DEBUG) return; // Early return if debug is disabled
+
+        console.log(`[DEBUG][IMPORTANT][${source}] BestLines:`,
+            lines.map(line => ({
+                multipv: line.multipv,
+                depth: line.depth,
+                move: line.move,
+                eval: line.evaluationText
+            }))
+        );
+    }, [DEBUG]);
+
     // Initialize worker
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -54,7 +71,11 @@ export const useStockfishAnalysis = () => {
             // Set up message handler
             workerRef.current.onmessage = (e: MessageEvent) => {
                 const { type, data } = e.data;
-                console.log('Worker message received', { type, data });
+
+                // Only log certain message types to reduce spam
+                if (DEBUG || type === 'error' || type === 'ready') {
+                    console.log('Worker message received', { type, data });
+                }
 
                 switch (type) {
                     case 'ready':
@@ -90,12 +111,24 @@ export const useStockfishAnalysis = () => {
                                 line => line.multipv === data.line.multipv
                             );
 
+                            // Only log when adding new lines or at significant depth changes
+                            const isSignificantUpdate =
+                                lineIndex === -1 ||
+                                data.line.depth % 5 === 0 ||
+                                data.line.depth === settings.depth;
+
                             if (lineIndex === -1) {
+                                if (DEBUG || isSignificantUpdate) {
+                                    console.log(`[DEBUG] Adding new line with multipv ${data.line.multipv}`);
+                                }
                                 newLines.push({
                                     ...data.line,
                                     evaluation: data.evaluation
                                 });
                             } else {
+                                if (DEBUG && isSignificantUpdate) {
+                                    console.log(`[DEBUG] Updating line with multipv ${data.line.multipv} at depth ${data.line.depth}`);
+                                }
                                 newLines[lineIndex] = {
                                     ...data.line,
                                     evaluation: data.evaluation
@@ -113,8 +146,58 @@ export const useStockfishAnalysis = () => {
                                 setProgress(data.line.depth);
                             }
 
-                            return newLines.sort((a, b) => b.evaluation - a.evaluation);
+                            const sortedLines = newLines.sort((a, b) => b.evaluation - a.evaluation);
+
+                            // Only log on significant changes
+                            if (DEBUG && isSignificantUpdate) {
+                                logBestLines(sortedLines, 'after-update');
+                            }
+
+                            return sortedLines;
                         });
+                        break;
+
+                    case 'analysis_batch':
+                        setBestLines(prev => {
+                            // Start with a copy of the previous lines
+                            let newLines = [...prev];
+
+                            // Log the batch of lines
+                            console.log(`[DEBUG][IMPORTANT] Received batch of ${data.lines.length} lines at depth ${data.depth}`);
+
+                            // Process each line in the batch
+                            data.lines.forEach((line: StockfishLine) => {
+                                // Find if this line already exists
+                                const lineIndex = newLines.findIndex(
+                                    existingLine => existingLine.multipv === line.multipv
+                                );
+
+                                if (lineIndex === -1) {
+                                    // Add new line
+                                    console.log(`[DEBUG] Adding new line with multipv ${line.multipv}`);
+                                    newLines.push(line);
+                                } else {
+                                    // Update existing line
+                                    console.log(`[DEBUG] Updating line with multipv ${line.multipv} at depth ${line.depth}`);
+                                    newLines[lineIndex] = line;
+                                }
+                            });
+
+                            // Sort lines by evaluation (highest first)
+                            const sortedLines = newLines.sort((a, b) => b.evaluation - a.evaluation);
+
+                            // Log the updated lines
+                            logBestLines(sortedLines, 'after-batch-update');
+
+                            return sortedLines;
+                        });
+
+                        // Update evaluation with the best line's evaluation
+                        if (data.lines.length > 0) {
+                            // Find the best line (highest evaluation)
+                            const bestLine = [...data.lines].sort((a, b) => b.evaluation - a.evaluation)[0];
+                            setEvaluation(bestLine.evaluation);
+                        }
                         break;
 
                     case 'progress':
@@ -150,7 +233,21 @@ export const useStockfishAnalysis = () => {
             setError('Failed to initialize Stockfish worker');
             addLogEntry('Worker initialization failed');
         }
-    }, [addLogEntry, settings.depth]);
+    }, [addLogEntry, settings.depth, logBestLines]);
+
+    // Log bestLines whenever they change for debugging
+    useEffect(() => {
+        if (bestLines.length > 0) {
+            console.log('[DEBUG][IMPORTANT] Current bestLines state:',
+                bestLines.length,
+                bestLines.map(line => ({
+                    multipv: line.multipv,
+                    depth: line.depth,
+                    move: line.move
+                }))
+            );
+        }
+    }, [bestLines]);
 
     const getEvaluationColor = (value: number): string => {
         if (Math.abs(value) < 0.5) return 'text-gray-300';
@@ -254,6 +351,22 @@ export const useStockfishAnalysis = () => {
         setProgress(0);
         setBestLines([]);
     }, []);
+
+    // Add an effect to restart analysis when settings change
+    useEffect(() => {
+        // Only restart if already analyzing
+        if (isAnalyzing && workerRef.current && engineReady) {
+            // Stop current analysis
+            stopAnalysis();
+
+            // Small delay to ensure clean restart
+            const timer = setTimeout(() => {
+                startAnalysis();
+            }, 100);
+
+            return () => clearTimeout(timer);
+        }
+    }, [settings.multiPV]); // Only restart when multiPV changes
 
     return {
         evaluation,
