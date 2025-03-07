@@ -86,6 +86,26 @@ export const SettingsPanel = ({
                     </select>
                     <p className="text-xs text-gray-500 mt-1">Number of alternative moves to analyze</p>
                 </div>
+
+                {/* Add threads dropdown in a new row */}
+                <div className="col-span-2 mt-3 pt-3 border-t border-gray-700">
+                    <label className="text-xs text-gray-300 font-medium block mb-1">CPU Threads</label>
+                    <select
+                        className="w-full bg-gray-700 text-white rounded-md px-2 py-1 text-sm"
+                        value={settings.threads}
+                        onChange={(e) => onUpdateSettings({ threads: parseInt(e.target.value) })}
+                        aria-label="Select number of CPU threads"
+                    >
+                        {[1, 2, 4, 8, 16].map((threadCount) => (
+                            <option key={threadCount} value={threadCount}>
+                                {threadCount} {threadCount === 1 ? 'thread' : 'threads'}
+                            </option>
+                        ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                        Number of CPU threads to use (higher = faster analysis but more CPU usage)
+                    </p>
+                </div>
             </div>
         </div>
     );
