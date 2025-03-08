@@ -17,11 +17,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Preload both WASM files with lower priority */}
         <link
           rel="preload"
-          href="/_next/static/wasm/stockfish-nnue-16-single.wasm"
+          href="/wasm/stockfish-nnue-16-single.wasm"
           as="fetch"
           crossOrigin="anonymous"
+          type="application/wasm"
+          fetchpriority="low"
+        />
+        <link
+          rel="preload"
+          href="/wasm/stockfish-nnue-16.wasm"
+          as="fetch"
+          crossOrigin="anonymous"
+          type="application/wasm"
+          fetchpriority="low"
         />
       </head>
       <body className={inter.className}>

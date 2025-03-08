@@ -3,6 +3,11 @@ declare module 'stockfish/src/stockfish-nnue-16-single.js' {
     export default Stockfish;
 }
 
+declare module 'stockfish/src/stockfish-nnue-16.js' {
+    const Stockfish: () => string;
+    export default Stockfish;
+}
+
 export interface StockfishLine {
     move: string;
     evaluation: number;

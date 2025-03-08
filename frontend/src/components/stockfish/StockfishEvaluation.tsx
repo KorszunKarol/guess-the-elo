@@ -9,6 +9,7 @@ import { AnalysisStatus } from './AnalysisStatus';
 import { AnalysisStats } from './AnalysisStats';
 import { SettingsPanel } from './SettingsPanel';
 import { EvaluationLines } from './EvaluationLines';
+import { ThreadUsageDisplay } from './ThreadUsageDisplay';
 
 interface StockfishEvaluationProps {
     className?: string;
@@ -33,7 +34,8 @@ export default function StockfishEvaluation({ className }: StockfishEvaluationPr
         error,
         toggleAnalysis,
         analysisLogs,
-        engineReady
+        engineReady,
+        threadInfo
     } = useStockfishAnalysis();
 
     const displayedLines = useMemo(() => {
@@ -127,6 +129,10 @@ export default function StockfishEvaluation({ className }: StockfishEvaluationPr
                         evaluation={evaluation}
                         isInfinite={settings.isInfinite}
                     />
+                )}
+
+                {isAnalyzing && threadInfo && (
+                    <ThreadUsageDisplay threadInfo={threadInfo} />
                 )}
 
                 {showSettings && (

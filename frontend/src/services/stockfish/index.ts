@@ -1,0 +1,1 @@
+export { StockfishService } from './StockfishService';

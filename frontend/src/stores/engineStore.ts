@@ -14,7 +14,7 @@ const DEFAULT_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
 const DEFAULT_SETTINGS = {
   depth: 20,
-  multiPV: 3,
+  multiPV: 5,
   threads: 2,
   isInfinite: false
 };

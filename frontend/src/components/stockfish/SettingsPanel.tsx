@@ -2,6 +2,9 @@
 
 import { cn } from '@/lib/utils';
 import type { EngineSettings } from '@/types/stockfish';
+import { useState } from 'react';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
 
 interface SettingsPanelProps {
     settings: EngineSettings;
@@ -18,6 +21,19 @@ export const SettingsPanel = ({
         console.log('Toggling infinite mode from', settings.isInfinite, 'to', !settings.isInfinite);
         onUpdateSettings({ isInfinite: !settings.isInfinite });
     };
+
+    // Handle depth value change
+    const handleDepthChange = (values: number[]) => {
+        if (values[0] !== settings.depth) {
+            onUpdateSettings({ depth: values[0] });
+        }
+    };
+
+    // Create ticks for depth slider
+    const depthMin = 5;
+    const depthMax = 30;
+    const depthSkipInterval = 5;
+    const depthTicks = [...Array(depthMax - depthMin + 1)].map((_, i) => i + depthMin);
 
     return (
         <div className="mb-4 p-3 bg-gray-800/50 rounded-lg space-y-3">
@@ -53,24 +69,52 @@ export const SettingsPanel = ({
 
             {/* Numeric settings */}
             <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-700">
+                {/* Enhanced Slider for depth with ticks */}
                 <div>
-                    <label className="text-xs text-gray-300 font-medium block mb-1">Analysis Depth</label>
-                    <select
-                        className="w-full bg-gray-700 text-white rounded-md px-2 py-1 text-sm"
-                        value={settings.depth}
-                        onChange={(e) => onUpdateSettings({ depth: parseInt(e.target.value) })}
+                    <div className="flex justify-between items-center mb-1">
+                        <Label className="text-xs text-gray-300 font-medium">Analysis Depth</Label>
+                        <span className="text-xs font-medium text-blue-400">{settings.depth}</span>
+                    </div>
+                    <Slider
+                        value={[settings.depth]}
+                        min={depthMin}
+                        max={depthMax}
+                        step={1}
+                        onValueChange={handleDepthChange}
                         disabled={settings.isInfinite}
+                        showTooltip
+                        tooltipContent={(value) => `Depth: ${value}`}
+                        aria-label="Select analysis depth"
+                    />
+                    {/* Ticks for the slider */}
+                    <span
+                        className="mt-2 flex w-full items-center justify-between gap-1 px-1 text-xs font-medium text-gray-500"
+                        aria-hidden="true"
                     >
-                        {[10, 15, 20, 25, 30].map((depth) => (
-                            <option key={depth} value={depth}>
-                                {depth}
-                            </option>
+                        {depthTicks.map((tick) => (
+                            <span
+                                key={tick}
+                                className={cn(
+                                    "flex w-0 flex-col items-center justify-center gap-1",
+                                    (tick - depthMin) % depthSkipInterval !== 0 && "opacity-0"
+                                )}
+                            >
+                                <span
+                                    className={cn(
+                                        "h-1 w-px bg-gray-500/70",
+                                        (tick - depthMin) % depthSkipInterval !== 0 && "h-0.5"
+                                    )}
+                                />
+                                <span>{tick}</span>
+                            </span>
                         ))}
-                    </select>
-                    <p className="text-xs text-gray-500 mt-1">
-                        {settings.isInfinite ? "Depth set to infinite" : "Higher depth = better analysis but slower"}
+                    </span>
+                    <p className="text-xs text-gray-500 mt-3">
+                        {settings.isInfinite ? "Depth set to infinite" : "Higher depth = better analysis but slower (5-30)"}
                     </p>
                 </div>
+
+                {/* Revert back to dropdown for multiPV */}
                 <div>
                     <label className="text-xs text-gray-300 font-medium block mb-1">Lines to Show</label>
                     <select

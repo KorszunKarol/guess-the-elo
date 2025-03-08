@@ -1,27 +1,14 @@
-/// <reference lib="webworker" />
-
 // This is a Web Worker file that handles Stockfish analysis
 // It runs in a separate thread to avoid blocking the UI
 
-import type { StockfishLine } from '@/types/stockfish';
+// Import Chess.js library
+importScripts('https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js');
+
 // We'll dynamically import the correct version based on feature detection
-let Stockfish: any;
-import { Chess } from 'chess.js';
-
-interface StockfishMessage {
-  type: 'start' | 'stop' | 'pause' | 'resume' | 'update_settings';
-  fen?: string;
-  settings?: {
-    depth: number;
-    multiPV: number;
-    threads: number;
-    isInfinite?: boolean;
-  };
-}
-
+let stockfishEngine = null;
 let isAnalyzing = false;
 let isPaused = false;
-let currentFen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+let currentFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 let lastUpdateTime = 0;
 let isProcessingCommand = false; // Flag to prevent race conditions
 let currentSettings = {
@@ -33,21 +20,19 @@ let currentSettings = {
 const UPDATE_THROTTLE_MS = 100; // Throttle updates to 10 per second max
 
 // Add a buffer to collect lines for each depth
-let lineBuffer: {
-  [depth: number]: StockfishLine[];
-} = {};
+let lineBuffer = {};
 
 // Set debug mode to false to disable debug logging
 const DEBUG = false;
 
 // Add debug logging utility
-const debugLog = (prefix: string, data: any) => {
+const debugLog = (prefix, data) => {
   // Always log for debugging
   console.log(`[DEBUG][IMPORTANT][${prefix}]`, data);
 };
 
 // Add utility to format evaluation score
-const formatEvaluation = (type: string, value: string): { score: number; text: string } => {
+const formatEvaluation = (type, value) => {
   if (type === 'cp') {
     const score = parseInt(value) / 100;
     return {
@@ -65,8 +50,50 @@ const formatEvaluation = (type: string, value: string): { score: number; text: s
   }
 };
 
+// Convert UCI moves to SAN notation using Chess.js
+const convertMovesToSan = (uciMoves, fen) => {
+  if (!uciMoves || uciMoves.length === 0) return [];
+
+  // Create a new chess instance with the current position
+  const chess = new Chess(fen);
+
+  // Convert each UCI move to SAN
+  const sanMoves = uciMoves.map(uciMove => {
+    if (!uciMove || uciMove.length < 4) return uciMove;
+
+    try {
+      // Extract from and to squares
+      const from = uciMove.slice(0, 2);
+      const to = uciMove.slice(2, 4);
+      const promotion = uciMove.length > 4 ? uciMove[4] : undefined;
+
+      // Create move object
+      const moveObj = {
+        from: from,
+        to: to,
+        promotion: promotion
+      };
+
+      // Make the move and get SAN notation
+      const move = chess.move(moveObj);
+
+      // If move is valid, return SAN notation
+      if (move) {
+        return move.san;
+      }
+
+      return uciMove; // Fallback to UCI if move is invalid
+    } catch (error) {
+      debugLog('Error converting UCI to SAN', { uciMove, error });
+      return uciMove; // Return original UCI move if conversion fails
+    }
+  });
+
+  return sanMoves;
+};
+
 // Parse evaluation score from Stockfish output
-const parseEvaluation = (line: string): { score: number; text: string } | null => {
+const parseEvaluation = (line) => {
   debugLog('Raw Line', line);
 
   const scoreMatch = line.match(/score (cp|mate) (-?\d+)/);
@@ -78,74 +105,8 @@ const parseEvaluation = (line: string): { score: number; text: string } | null =
   return formatEvaluation(type, value);
 };
 
-// Convert UCI moves to SAN notation
-const convertMovesToSan = (uciMoves: string[]): string[] => {
-  // Create a single chess instance with current position
-  const chess = new Chess(currentFen);
-  const sanMoves: string[] = [];
-
-  // Debug the starting position
-  debugLog('Starting position FEN', currentFen);
-  // Chess.js doesn't have validate_fen method exposed, so we'll just log if we can create a valid instance
-  debugLog('Starting position valid', !!chess);
-
-  for (const uciMove of uciMoves) {
-    try {
-      // Skip empty moves
-      if (!uciMove || uciMove.length < 4) {
-        debugLog('Skipping invalid move format', uciMove);
-        continue;
-      }
-
-      // Convert UCI move format (e2e4) to an object format { from: 'e2', to: 'e4' }
-      const from = uciMove.slice(0, 2);
-      const to = uciMove.slice(2, 4);
-      const promotion = uciMove.length > 4 ? uciMove[4] : undefined;
-
-      const moveObj = {
-        from,
-        to,
-        ...(promotion && { promotion })
-      };
-
-      // Check if the move is legal before applying it
-      const possibleMoves = chess.moves({ verbose: true });
-      const isLegalMove = possibleMoves.some(
-        move => move.from === from && move.to === to &&
-                (!promotion || move.promotion === promotion)
-      );
-
-      if (!isLegalMove) {
-        debugLog('Illegal move detected', {
-          move: uciMove,
-          fen: chess.fen(),
-          possibleMoves: possibleMoves.map(m => `${m.from}${m.to}${m.promotion || ''}`)
-        });
-        break; // Stop on first illegal move
-      }
-
-      // Apply the move to the chess instance, capturing the SAN notation
-      const move = chess.move(moveObj);
-      if (move) {
-        sanMoves.push(move.san);
-        // Note: The chess instance is now updated with this move applied
-        // So the next move will be calculated from this new position
-        debugLog('Move applied', { uci: uciMove, san: move.san, newFen: chess.fen() });
-      } else {
-        debugLog('Invalid move', { uciMove, fen: chess.fen() });
-        break; // Stop on first invalid move as subsequent moves would be invalid
-      }
-    } catch (err) {
-      console.error('Failed to convert move:', uciMove, err);
-      break; // Stop on first error as subsequent moves would be invalid
-    }
-  }
-
-  return sanMoves;
-};
-
 // Parse best line from Stockfish output
-const parseBestLine = (line: string): StockfishLine | null => {
+const parseBestLine = (line) => {
   debugLog('Raw Line', line);
 
   // Check for the multipv value in the line
@@ -171,18 +132,14 @@ const parseBestLine = (line: string): StockfishLine | null => {
   debugLog('UCI Moves', uciMoves);
 
   // Convert to SAN
-  const sanMoves = convertMovesToSan(uciMoves);
+  const sanMoves = convertMovesToSan(uciMoves, currentFen);
   debugLog('SAN Moves', sanMoves);
 
-  // IMPORTANT: Make sure we preserve the multipv value from Stockfish
-  // Use the multipv value we extracted earlier
-  debugLog('Final multipv value', multipv);
-
   return {
-    move: sanMoves[0] || '',
+    move: sanMoves[0] || uciMoves[0] || '',
     evaluation: scoreInfo?.score || 0,
     evaluationText: scoreInfo?.text || '0.00',
-    sequence: sanMoves,
+    sequence: sanMoves.length > 0 ? sanMoves : uciMoves,
     depth: parseInt(depth),
     multipv: multipv,
     nodes,
@@ -197,13 +154,72 @@ console.log('SharedArrayBuffer available:', isSharedArrayBufferAvailable);
 // Track if worker is terminated
 let isTerminated = false;
 
+// Add variables to track CPU usage
+let cpuUsageStartTime = 0;
+let cpuUsageCounter = 0;
+let cpuUsagePercentage = 0;
+let cpuUsageIntervalId = null;
+
+// Function to measure CPU usage
+const measureCpuUsage = () => {
+  // Start a new measurement cycle
+  cpuUsageStartTime = Date.now();
+  cpuUsageCounter = 0;
+
+  // Run a CPU-intensive task for a short period
+  const endTime = cpuUsageStartTime + 50; // 50ms measurement window
+
+  while (Date.now() < endTime) {
+    // Simple increment operation to measure CPU throughput
+    cpuUsageCounter++;
+  }
+
+  // Calculate operations per millisecond as a proxy for CPU usage
+  const elapsedTime = Date.now() - cpuUsageStartTime;
+  const opsPerMs = cpuUsageCounter / elapsedTime;
+
+  // Normalize to a percentage (this is an approximation)
+  // We'll use a baseline of 1,000,000 ops/ms as "100% usage"
+  // This is arbitrary and should be calibrated for your specific use case
+  const baselineOpsPerMs = 1000000;
+  cpuUsagePercentage = Math.min(100, (opsPerMs / baselineOpsPerMs) * 100);
+
+  // Send the CPU usage to the main thread
+  self.postMessage({
+    type: 'cpu_usage',
+    data: {
+      percentage: Math.round(cpuUsagePercentage),
+      opsPerMs: opsPerMs
+    }
+  });
+};
+
+// Start measuring CPU usage periodically
+const startCpuUsageMeasurement = () => {
+  if (cpuUsageIntervalId) return; // Already running
+
+  // Measure CPU usage every 2 seconds
+  cpuUsageIntervalId = setInterval(measureCpuUsage, 2000);
+
+  // Run an initial measurement
+  measureCpuUsage();
+};
+
+// Stop measuring CPU usage
+const stopCpuUsageMeasurement = () => {
+  if (cpuUsageIntervalId) {
+    clearInterval(cpuUsageIntervalId);
+    cpuUsageIntervalId = null;
+  }
+};
+
 // Define the message handler function
-const handleEngineMessage = (event: MessageEvent) => {
+const handleEngineMessage = (event) => {
   const message = event.data;
 
   // Process the message based on your existing logic
-  // This is a simplified version - you should adapt it to match your existing message handling logic
   if (message === 'readyok') {
+    console.log('Received readyok from Stockfish engine, sending ready message to main thread');
     self.postMessage({ type: 'ready' });
     return;
   }
@@ -247,11 +263,8 @@ const initStockfish = async () => {
     console.log('Loading Stockfish worker from:', workerPath);
     console.log('Multi-threading supported:', isSharedArrayBufferAvailable);
 
-    // Create a simple worker
-    const engine = new Worker(workerPath, {
-      name: 'stockfish-worker',
-      type: 'module'
-    });
+    // Create a simple worker without module type
+    const engine = new Worker(workerPath);
 
     // Set up message handling
     engine.onmessage = handleEngineMessage;
@@ -276,7 +289,7 @@ const initStockfish = async () => {
     console.log('Sent initialization commands to engine');
 
     return engine;
-  } catch (error: unknown) {
+  } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Error initializing Stockfish:', errorMessage);
     self.postMessage({
@@ -286,9 +299,6 @@ const initStockfish = async () => {
     return null;
   }
 };
-
-// Initialize Stockfish engine
-let stockfishEngine: Worker | null = null;
 
 // Helper function to restart analysis in infinite mode
 const restartInfiniteAnalysis = () => {
@@ -317,11 +327,7 @@ initStockfish()
     });
   });
 
-// Add a flag to track when we're collecting thread info
-let isCollectingThreadInfo = false;
-let threadInfoBuffer = '';
-
-// Improve the verifyThreadUsage function
+// Modify the verifyThreadUsage function to include CPU usage
 const verifyThreadUsage = () => {
   if (!stockfishEngine || !isAnalyzing) return;
 
@@ -341,7 +347,7 @@ const verifyThreadUsage = () => {
       threadInfo: {
         requestedThreads: currentSettings.threads,
         actualThreads: actualThreads,
-        cpuUsage: null, // We can't directly measure CPU usage from the worker
+        cpuUsage: Math.round(cpuUsagePercentage), // Add CPU usage percentage
         multiThreadingSupported: isSharedArrayBufferAvailable,
         unsupportedReason: unsupportedReason
       }
@@ -350,7 +356,7 @@ const verifyThreadUsage = () => {
 };
 
 // Handle messages from main thread
-self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
+self.onmessage = async (e) => {
   console.log('Worker received message', e.data);
 
   if (!stockfishEngine) {
@@ -370,8 +376,8 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
     // Wait a bit and then retry by posting the same message back to self
     setTimeout(() => {
       self.postMessage({ type: 'debug', data: { message: `Requeuing command: ${type}` } });
-      // Use a type assertion to handle the TypeScript error
-      (self.onmessage as (e: MessageEvent<StockfishMessage>) => void)(e);
+      // Repost the message
+      self.onmessage(e);
     }, 100);
     return;
   }
@@ -424,6 +430,9 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
         isPaused = false;
         lastUpdateTime = 0;
 
+        // Start CPU usage measurement
+        startCpuUsageMeasurement();
+
         console.log('Setting position and starting analysis', {
           fen: currentFen,
           isInfinite: currentSettings.isInfinite,
@@ -456,6 +465,10 @@ self.onmessage = async (e: MessageEvent<StockfishMessage>) => {
           await ensureEngineStopped();
           isAnalyzing = false;
           isPaused = false;
+
+          // Stop CPU usage measurement
+          stopCpuUsageMeasurement();
+
           // Send complete and reset progress
           console.log('Sending complete message to UI');
           self.postMessage({ type: 'complete' });
@@ -513,7 +526,7 @@ self.addEventListener('message', (e) => {
         if (stockfishEngine.terminate) {
           stockfishEngine.terminate();
         }
-      } catch (error: unknown) {
+      } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.warn('Error during engine termination:', errorMessage);
       }

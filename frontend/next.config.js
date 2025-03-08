@@ -45,9 +45,10 @@ module.exports = {
 
     config.resolve.fallback = {
       ...config.resolve.fallback,
+      perf_hooks: false,
       fs: false,
-      readline: false,
-      worker_threads: false
+      worker_threads: false,
+      path: false
     };
 
     // Create public directory if it doesn't exist
@@ -66,10 +67,17 @@ module.exports = {
             force: true
           },
           {
+            from: 'node_modules/stockfish/src/stockfish-nnue-16.js',
+            to: path.resolve(__dirname, 'public/wasm/stockfish-nnue-16.js'),
+            transform(content) {
+              return content.toString().replace(/require\(['"]perf_hooks['"]\)/g, '{}');
+            }
+          },
+          {
             from: 'node_modules/stockfish/src/stockfish-nnue-16-single.js',
             to: path.resolve(__dirname, 'public/wasm/stockfish-nnue-16-single.js'),
             transform(content) {
-              return `// ${new Date().toISOString()}\n${content}`
+              return content.toString().replace(/require\(['"]perf_hooks['"]\)/g, '{}');
             }
           }
         ],
@@ -84,17 +92,28 @@ module.exports = {
   async headers() {
     return [
       {
-        source: '/wasm/stockfish-nnue-16-single.js',
+        // Apply to all routes
+        source: '/:path*',
         headers: [
-          { key: 'Content-Type', value: 'text/javascript' },
           { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' }
         ]
       },
+      // Specific headers for WASM files
       {
         source: '/wasm/:path*.wasm',
         headers: [
-          { key: 'Content-Type', value: 'application/wasm' }
+          { key: 'Content-Type', value: 'application/wasm' },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }
+        ]
+      },
+      // Specific headers for JS files
+      {
+        source: '/wasm/:path*.js',
+        headers: [
+          { key: 'Content-Type', value: 'text/javascript' },
+          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' }
         ]
       }
     ]

@@ -7,13 +7,26 @@ import ChessEvaluationComponent from '@/components/chess/ChessEvaluationComponen
 import { Header } from '@/components/game';
 import { Card } from '@/components/ui/card';
 import { SettingsModal } from '@/components/chess/SettingsModal';
-import StockfishEvaluation from '@/components/stockfish/StockfishEvaluation';
+import dynamic from 'next/dynamic';
 import { GameLayout } from '@/components/game/GameLayout';
 import ProfilePage from '@/components/chess/ProfilePage';
 import StatsPage from '@/components/chess/StatsPage';
 
 import { ChessContainer } from '@/components/chess/ChessContainer';
 import { Clock } from 'lucide-react';
+
+// Dynamically import the Stockfish component to reduce initial bundle size
+const StockfishEvaluation = dynamic(
+  () => import('@/components/stockfish/StockfishEvaluation'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-40 bg-gray-800/50 rounded-lg">
+        <div className="text-sm text-gray-400">Loading chess engine...</div>
+      </div>
+    )
+  }
+);
 
 export default function GuessTheEvalPage() {
     const [game, setGame] = useState<Chess>(new Chess());

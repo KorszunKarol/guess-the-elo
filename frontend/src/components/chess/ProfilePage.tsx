@@ -19,12 +19,12 @@ import {
     Target,
     Brain,
     Zap,
-    ChessKnight,
     Flame,
     Star,
     Calendar,
     Clock,
 } from 'lucide-react';
+import { Chess } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     HoverCard,
@@ -237,7 +237,7 @@ export default function ProfilePage({ onClose, userData }: ProfilePageProps) {
                                                             .gamesPlayed
                                                     }
                                                     icon={
-                                                        <ChessKnight className="h-4 w-4 text-blue-500" />
+                                                        <Chess className="h-4 w-4 text-blue-500" />
                                                     }
                                                 />
                                                 <StatCard
